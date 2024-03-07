@@ -12,11 +12,19 @@ def get_goals():
 @app.route("/add_goal", methods=['POST'])
 def add_goal():
     data = request.get_json()
-    new_goal = data.get('name')
-    app_data.add_goal(new_goal)
-    return jsonify({'message': f'Goal [{new_goal}] added successfully'})
+    name = data.get('name')
+    desc = data.get('description')
+    app_data.add_journey(journey_name=name, description=desc)
+    return jsonify({'message': f'Goal [{name}] added successfully'})
 
-
+@app.route("/remove_journey", methods=['POST'])
+def remove_journey():
+    data = request.get_json()
+    idx = data.get('index')
+    app.logger.info(f"removing {idx}")
+    app_data.remove_journey(index=idx)
+    app.logger.info("removed")
+    return jsonify({'message': f'Goal [{idx}] added successfully'})
 
 @app.route("/journeyDetails")
 def getJourneyDetails():

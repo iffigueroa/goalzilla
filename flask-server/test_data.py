@@ -35,7 +35,6 @@ class Journey():
             'quests': []
         }
 
-        
 
 class GoalzillaData():
     # Eventually may be good to put this in an external source...
@@ -45,10 +44,12 @@ class GoalzillaData():
     def get_goals_list(self):
         return [goal.name for goal in self.goals]
 
-    def add_goal(self, new_goal):
-        self.goals.append(new_goal)
+    def add_journey(self, journey_name, description):
+        self.goals.append(Journey(name=journey_name, description=description))
 
     def get_journey_details(self, index):
+        if index < 0:
+            return None
         return self.goals[index].get_journey_details()
     
     def get_test_defaults(self):
@@ -57,4 +58,7 @@ class GoalzillaData():
             Journey(name = 'Test2', description = 'Hello2'),
             Journey(name = 'Test3', description = 'Hello3'), 
         ]
+
+    def remove_journey(self, index):
+        self.goals.pop(index)
         

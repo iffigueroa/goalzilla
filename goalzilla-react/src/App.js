@@ -40,7 +40,7 @@ function LevelListDisplay(){
 }
 
 
-function GoalTrackDisplay({journeyIdx}){
+function GoalTrackDisplay({journeyIdx, removeJourney}){
   const [data, setData] = useState([{}])
 
   useEffect(() => {
@@ -52,8 +52,9 @@ function GoalTrackDisplay({journeyIdx}){
         console.log(data)
       }
     )
-  }, [])
+  }, [journeyIdx])
   
+
   return (
     <Container fluid="sm">
       <Row fluid>
@@ -63,7 +64,7 @@ function GoalTrackDisplay({journeyIdx}){
             <Dropdown.Toggle></Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item>Edit Details</Dropdown.Item>
-              <Dropdown.Item>Remove</Dropdown.Item>
+              <Dropdown.Item onClick={() => removeJourney(journeyIdx)}>Remove</Dropdown.Item>
               <Dropdown.Item>Set Active</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -102,20 +103,23 @@ function GoalTrackDisplay({journeyIdx}){
 function NewGoalForm({addNewGoal}){
   // For editing 
   const [goalName, setGoalName] = useState('')
+  const [description, setDescription] = useState('')
   const handleSubmit = (e) => {
     e.preventDefault();
-    addNewGoal(goalName);
+    addNewGoal(goalName, description);
     setGoalName('');
   };
   return (
     <Container className="text-center my-5">
         <Card>
             <Card.Body>
-                <Card.Title>Add a New Goal</Card.Title>
+                <Card.Title>New Journey!</Card.Title>
                 <Form onSubmit={handleSubmit}>
                   <Form.Group>
-                    <Form.Label>Goal Name</Form.Label>
+                    <Form.Label>Journey Name</Form.Label>
                     <Form.Control onChange={(e) => setGoalName(e.target.value)} placeholder="Enter name here"/>
+                    <Form.Label>Journey Description</Form.Label>
+                    <Form.Control onChange={(e) => setDescription(e.target.value)} placeholder="Enter a quick description here"/>
                   </Form.Group>
                   <br/>
                   <Button variant="light" type="submit">Submit</Button>
@@ -145,20 +149,43 @@ function App(){
 
   const toggleGoalForm = () => {
     setShowNewGoalForm((prev) => !prev);
+    setShowGoalTrack(false);
   };
   const displayGoalTrack = (index) => {
     setGoalTrackId(index)
-    setShowGoalTrack((prev) => !prev);
+    setShowGoalTrack(true);
+    setShowNewGoalForm(false);
   };
 
-  const addNewGoal = (goalName) => {
+  const removeJourney = (index) => {
+    console.log("removing")
+    fetch('/remove_journey', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "index": index}),
+    }).then((res) => res.text())
+    .then((message) => {
+      console.log(message);
+      // Refresh the list of members after adding a new member
+      fetch('/goals')
+        .then((res) => res.json())
+        .then((data) => {
+          setData(data);
+        });
+    });
+    setGoalTrackId(goalTrackId < 0 ? 0 : goalTrackId - 1);
+  }
+
+  const addNewGoal = (goalName, description) => {
     // Add new member to the list
     fetch('/add_goal', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ "name": goalName }),
+      body: JSON.stringify({ "name": goalName, "description":description}),
     })
       .then((res) => res.text())
       .then((message) => {
@@ -172,7 +199,7 @@ function App(){
       });
       toggleGoalForm()
   };
-
+  console.log(data.goals?.length)
   return (   
       <Container>
         <NavHeader/>
@@ -195,8 +222,8 @@ function App(){
           </Col>
 
           <Col>
-            {/* {showNewGoalForm && <NewGoalForm addNewGoal={addNewGoal}/>} */}
-            {showGoalTrack && <GoalTrackDisplay journeyIdx={goalTrackId} />}
+            {showNewGoalForm && <NewGoalForm addNewGoal={addNewGoal}/>}
+            {data.goals?.length > 0 && showGoalTrack && <GoalTrackDisplay journeyIdx={goalTrackId} removeJourney={removeJourney} />}
           </Col>
 
         </Row>
