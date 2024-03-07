@@ -4,10 +4,103 @@ import React, {useState, useEffect} from 'react'
 import ListGroup from 'react-bootstrap/ListGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Container, Card, Button, Form} from 'react-bootstrap';
+import { Container, Card, Button, Form, Dropdown, ProgressBar, Accordion, Navbar} from 'react-bootstrap';
+
+function NavHeader() {
+  return (
+    <Navbar>
+      <Navbar.Brand href="#home">Goalzilla</Navbar.Brand>
+    </Navbar>
+  );
+}
+
+
+function LevelListDisplay(){
+  // Levels can either be completed in random order or in sequence - make this an attribute
+  return (
+    <Container>
+      <Row>
+        <Col><h3>Quests</h3></Col>
+      </Row>
+      <Row>
+        <Col>
+          <Accordion>
+            <Accordion.Item>
+              <Accordion.Header>Placeholder</Accordion.Header>
+              <Accordion.Body>
+                Some Placeholder Detail
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+        </Col>
+      </Row>
+      
+    </Container>
+  )
+}
+
+
+function GoalTrackDisplay({journeyIdx}){
+  const [data, setData] = useState([{}])
+
+  useEffect(() => {
+    fetch('/journeyDetails?index='+journeyIdx).then(
+      res => res.json()
+    ).then(
+      data => {
+        setData(data)
+        console.log(data)
+      }
+    )
+  }, [])
+  
+  return (
+    <Container fluid="sm">
+      <Row fluid>
+        <Col sm={11}><h1>{data.journeyName}</h1></Col>
+        <Col>
+          <Dropdown>
+            <Dropdown.Toggle></Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item>Edit Details</Dropdown.Item>
+              <Dropdown.Item>Remove</Dropdown.Item>
+              <Dropdown.Item>Set Active</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Card>
+            <Card.Body>
+                {data.journeyDetail}
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col>
+        <Card>
+          <Card.Body>
+            <Card.Title>Quests Completed</Card.Title>
+            <Card.Title>{data.questsComplete}/{data.totalQuests}</Card.Title>
+          </Card.Body>
+        </Card>
+        </Col>
+      </Row>
+      <Row>
+        <Col><ProgressBar now={data.progress} label={`${data.progress}%`}/></Col>
+      </Row>
+
+      <Row>
+        <LevelListDisplay/>
+      </Row>
+    </Container>
+  )
+
+}
 
 
 function NewGoalForm({addNewGoal}){
+  // For editing 
   const [goalName, setGoalName] = useState('')
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,6 +117,7 @@ function NewGoalForm({addNewGoal}){
                     <Form.Label>Goal Name</Form.Label>
                     <Form.Control onChange={(e) => setGoalName(e.target.value)} placeholder="Enter name here"/>
                   </Form.Group>
+                  <br/>
                   <Button variant="light" type="submit">Submit</Button>
                 </Form>
             </Card.Body>
@@ -35,6 +129,8 @@ function NewGoalForm({addNewGoal}){
 function App(){
   const [data, setData] = useState([{}])
   const [showNewGoalForm, setShowNewGoalForm] = useState(false)
+  const [showGoalTrack, setShowGoalTrack] = useState(false)
+  const [goalTrackId, setGoalTrackId] = useState(null)
 
   useEffect(() => {
     fetch('/goals').then(
@@ -46,11 +142,13 @@ function App(){
       }
     )
   }, [])
-  const test = () => {
-    console.log("HELLOOOOO")
-  }
+
   const toggleGoalForm = () => {
     setShowNewGoalForm((prev) => !prev);
+  };
+  const displayGoalTrack = (index) => {
+    setGoalTrackId(index)
+    setShowGoalTrack((prev) => !prev);
   };
 
   const addNewGoal = (goalName) => {
@@ -75,40 +173,35 @@ function App(){
       toggleGoalForm()
   };
 
-  return (
-    <div>
-      <h1>Goalzilla</h1>
-      
+  return (   
       <Container>
-        
+        <NavHeader/>
         <Row>
-          <Col xs={4} className='bg'>
-          <Row>
-          <Col xs={9} className='bg'><h2>Goals List</h2></Col>
-          <Col xs={1} className='bg'><Button variant="light" onClick={toggleGoalForm}>New</Button></Col>
-          
-          </Row>
-          
-          <ListGroup>
-            {(typeof data.goals === "undefined") ? (
-                <p>Loading...</p>
-              ) : (
-                  data.goals.map((name, i) => (
-                    <ListGroup.Item key={i} onClick={test}>{name}</ListGroup.Item>
-                  ))
-            )}
+          <Col sm={3}>
+            <Row>
+              <Col sm={9}><h3>Journeys</h3></Col>
+              <Col><Button variant="light" onClick={toggleGoalForm}>+</Button></Col>
+            </Row>
+            
+            <ListGroup>
+              {(typeof data.goals === "undefined") ? (
+                  <p>Loading...</p>
+                ) : (
+                    data.goals.map((name, i) => (
+                      <ListGroup.Item key={i} onClick={()=>displayGoalTrack(i)}>{name}</ListGroup.Item>
+                    ))
+              )}
             </ListGroup>
           </Col>
+
           <Col>
-          {showNewGoalForm && <NewGoalForm addNewGoal={addNewGoal}/>}
+            {/* {showNewGoalForm && <NewGoalForm addNewGoal={addNewGoal}/>} */}
+            {showGoalTrack && <GoalTrackDisplay journeyIdx={goalTrackId} />}
           </Col>
+
         </Row>
-      </Container>
-      
-      
-      
-    </div>
-  )
+      </Container>    
+    )
 }
 
 export default App
