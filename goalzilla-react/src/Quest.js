@@ -1,16 +1,45 @@
 import React, {useState, useEffect} from 'react'
 import { Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
 
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation} from 'react-router-dom'
 
 
 
 function QuestDisplay(){
-    const {journeyIdx, questIdx} = useParams();
+    const params = useLocation()    
+    const {journeyIdx, questIdx} =  params.state
 
-    const data = {'quests': ['hu', 'jo', 'sdifl'], 'tasks': ['Task One', 'Task Two', 'Task Three']}
-    const questName = "Fake Quest"
-    const questDescription = "Fake Quest description this is really interesting"
+    const [currentQuestIdx, setCurrentQuestIdx] = useState(questIdx)
+    const [journeyData, setJourneyData] = useState([{}])
+    const [questData, setQuestData] = useState([{}])
+
+
+    useEffect(() => {
+        fetch('/journeyDetails?index='+journeyIdx).then(
+            res => res.json()
+        ).then(
+            data => {
+            setJourneyData(data)
+            }
+        )
+    }, [])
+
+    useEffect(() => {
+        fetch('/questDetails?journeyIdx='+journeyIdx+'&questIdx='+currentQuestIdx).then(
+            res => res.json()
+        ).then(
+            data => {
+                setQuestData(data)
+                console.log("new quest data")
+                console.log(questData)
+            }
+        )
+    }, [currentQuestIdx])
+
+    const updateQuestIdx = (idx) => {
+        setCurrentQuestIdx(idx)
+    }
+
     return (   
         <Container>
             <Row>
@@ -18,27 +47,31 @@ function QuestDisplay(){
                     <Row className='p-2'>
                         <Card className="w-100">
                             <Card.Body>
-                                <Card.Title>Journey Name</Card.Title>
-                                Description
+                                <Card.Title>{journeyData.journeyName}</Card.Title>
+                                {journeyData.journeyDetail}
                                 <hr/>
-                                <ProgressBar  className='p-2' now={0} label={`${0}%`}/>
+                                <ProgressBar now={journeyData.progress} label={`${journeyData.progress}%`}/>
                             </Card.Body>
                         </Card>
                     </Row>
                     <Row className='p-2'><h3>Quests</h3></Row>
                     <Row className='p-2'>
                         <ListGroup className="w-100">
-                            {data.quests.map((name, i) => (
-                                <ListGroup.Item key={i} >{name}</ListGroup.Item>
-                            ))}
+                            {(typeof journeyData.questList === "undefined") ? (
+                                <p>Loading...</p>
+                            ) : (
+                                journeyData.questList.map((name, i) => (
+                                    <ListGroup.Item key={i} onClick={() => updateQuestIdx(i)}>{name}</ListGroup.Item>
+                                ))
+                            )}
                         </ListGroup>
                     </Row>
                 </Col>
                 <Col sm={9}>
                     <Row>
-                        <Col><h1 className='p-2'>{questName}</h1></Col>
+                        <Col sm={10}><h1 className='p-2'>{questData.name}</h1></Col>
                         <Col>
-                            <Dropdown className="float-right p-1">
+                            <Dropdown className="float-right p-2">
                                 <Dropdown.Toggle variant="light"></Dropdown.Toggle>
                                 <Dropdown.Menu>
                                 <Dropdown.Item disabled onClick={() => console.log("Edit Details")}>Edit Details</Dropdown.Item>
@@ -49,7 +82,7 @@ function QuestDisplay(){
                     </Row>
                         <Card>
                             <Card.Body>
-                                {questDescription}
+                                {questData.description}
                             </Card.Body>
                         </Card>
                     <hr/>
@@ -58,10 +91,10 @@ function QuestDisplay(){
                         <Col><Button variant="light" className="float-right" onClick={()=>console.log("Adding New Task")}>+</Button></Col>
                     </Row>
                     <ListGroup>
-                        {(typeof data.tasks === "undefined") ? (
+                        {(typeof questData.tasks === "undefined") ? (
                             <p>Loading...</p>
                             ) : (
-                                data.tasks.map((name, i) => (
+                                questData.tasks.map((name, i) => (
                                 <ListGroup.Item key={i} onClick={()=>console.log(i)}>{name}</ListGroup.Item>
                             ))
                         )}

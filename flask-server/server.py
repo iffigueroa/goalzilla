@@ -65,5 +65,16 @@ def getJourneyDetails():
     else: 
         return {'error': 'No journey with provided id.'}
 
+@app.route('/questDetails')
+def get_quest_details():
+    args = request.args
+    journeyIdx = args.get('journeyIdx')
+    questIdx = args.get('questIdx')
+    if journeyIdx and questIdx: 
+        return app_data.get_quest_details(journeyIdx=int(journeyIdx), questIdx=int(questIdx))
+    return {'error': 'No journey with provided id.'}
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

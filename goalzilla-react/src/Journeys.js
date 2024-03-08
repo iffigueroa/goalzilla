@@ -66,7 +66,7 @@ function LevelListDisplay({journeyIdx}){
   };
 
   const navigateToQuest = (journeyIdx, questIdx) =>{
-    navigate('/quest?journeyIdx='+journeyIdx+'&questIdx='+questIdx)
+    navigate('/quest', { state: {journeyIdx, questIdx}});
   };
 
   return (
@@ -103,7 +103,7 @@ function LevelListDisplay({journeyIdx}){
 
 function GoalTrackDisplay({journeyIdx, removeJourney}){
   const [data, setData] = useState([{}])
-
+  
   useEffect(() => {
     fetch('/journeyDetails?index='+journeyIdx).then(
       res => res.json()

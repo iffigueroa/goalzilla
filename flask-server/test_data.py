@@ -21,6 +21,7 @@ class Quest():
             'name': self.name,
             'description': self.description,
             'status': str(self.status.value),
+            'tasks': ["step one", "step two", "step three"]
         }
     
 
@@ -62,9 +63,13 @@ class Journey():
             'questsComplete': 2, 
             'totalQuests': 10,
             'progress': self.progress,
+            'questList': [q.name for q in self.quests]
         }
     def get_quests_preview(self):
         return {'quests': [q.get_preview() for q in self.quests]}
+    
+    def get_quest_details(self, questIdx): 
+        return self.quests[questIdx].get_preview()
 
 
 class GoalzillaData():
@@ -102,3 +107,6 @@ class GoalzillaData():
 
     def remove_quest(self, journeyIdx, questIdx):
         self.goals[journeyIdx].remove_quest(questIdx)
+
+    def get_quest_details(self, journeyIdx, questIdx):
+        return self.goals[journeyIdx].get_quest_details(questIdx)
