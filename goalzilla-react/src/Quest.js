@@ -1,10 +1,13 @@
 import React, {useState, useEffect} from 'react'
-import { Row, Col, ListGroup, Alert, Container, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
+import { Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
 
+import { useParams } from 'react-router-dom'
 
 
 
 function QuestDisplay(){
+    const {journeyIdx, questIdx} = useParams();
+
     const data = {'quests': ['hu', 'jo', 'sdifl'], 'tasks': ['Task One', 'Task Two', 'Task Three']}
     const questName = "Fake Quest"
     const questDescription = "Fake Quest description this is really interesting"

@@ -6,8 +6,8 @@ import Journeys from './Journeys';
 
 function NavHeader() {
   return (
-    <Navbar variant='dark' bg='dark'>
-      <Navbar.Brand href="#home">Goalzilla</Navbar.Brand>
+    <Navbar>
+      <Navbar.Brand href="/">Goalzilla</Navbar.Brand>
     </Navbar>
   );
 }
@@ -18,7 +18,7 @@ function App(){
         <NavHeader/>
         <Routes>
           <Route path='/' element={<Journeys/>}/>
-          <Route path="/quest" element={<QuestDisplay/>}/>
+          <Route path="/quest" element={<QuestDisplay/>} />
         </Routes>
       </Container>   
     </Router>

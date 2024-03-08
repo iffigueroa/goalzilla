@@ -1,20 +1,11 @@
 import React, {useState, useEffect} from 'react'
-import { Row, Col, ListGroup, Alert, Container, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
-import QuestDisplay from './Quest';
+import { Row, Col, ListGroup, Alert, Container, Card, Button, Form, Dropdown, ProgressBar} from 'react-bootstrap';
 
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-
-function NavHeader() {
-  return (
-    <Navbar variant='dark' bg='dark'>
-      <Navbar.Brand href="#home">Goalzilla</Navbar.Brand>
-    </Navbar>
-  );
-}
+import { useNavigate } from 'react-router-dom'
 
 function LevelListDisplay({journeyIdx}){
   const [questData, setQuestData] = useState([{}])
-
+  const navigate = useNavigate()
   useEffect(() => {
     fetch('/quest_preview?journeyIdx='+journeyIdx).then(
       res => res.json()
@@ -74,6 +65,10 @@ function LevelListDisplay({journeyIdx}){
       });
   };
 
+  const navigateToQuest = (journeyIdx, questIdx) =>{
+    navigate('/quest?journeyIdx='+journeyIdx+'&questIdx='+questIdx)
+  };
+
   return (
     <Container fluid>
       <Row>
@@ -96,7 +91,7 @@ function LevelListDisplay({journeyIdx}){
                       <Card.Text>{q.description}</Card.Text>
                       
                     </Card.Body>
-                    <Card.Footer><Button>Start Quest</Button></Card.Footer>
+                    <Card.Footer><Button onClick={()=>navigateToQuest(journeyIdx, i)}>Start Quest</Button></Card.Footer>
                   </Card>
                 </Col>
               ))
