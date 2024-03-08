@@ -4,7 +4,7 @@ import React, {useState, useEffect} from 'react'
 import ListGroup from 'react-bootstrap/ListGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Alert, Container, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
+import { Alert, Container, CloseButton, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
 
 function NavHeader() {
   return (
@@ -14,34 +14,64 @@ function NavHeader() {
   );
 }
 
-function LevelListDisplay(){
-  // const questData = ["test", 'Test', 'test']
-  const questData = ["test", 'Test', 'test', "test", 'Test', 'test']
-  // const questData = null
+function LevelListDisplay({journeyIdx}){
+  const [questData, setQuestData] = useState([{}])
 
-  // Levels can either be completed in random order or in sequence - make this an attribute
+  useEffect(() => {
+    fetch('/quest_preview?journeyIdx='+journeyIdx).then(
+      res => res.json()
+    ).then(
+      data => {
+        setQuestData(data.quests)        
+        console.log(questData)
+      }
+    )
+  }, [journeyIdx])
+
+
+  const addQuest = (name, description) => {
+    // Add new member to the list
+    fetch('/add_quest', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "journeyIdx": journeyIdx, "name": name, "description":description}),
+    })
+      .then((res) => res.text())
+      .then((message) => {
+        console.log(message);
+        // Refresh the list of members after adding a new member
+        fetch('/quest_preview?journeyIdx='+journeyIdx).then(
+          res => res.json()
+        ).then(
+            data => {
+              setQuestData(data.quests)        
+              console.log(questData)
+            }
+          )
+      });
+  };
+
   return (
     <Container fluid>
       <Row>
         <Col sm={10}><h3>Quests</h3></Col>
-        <Col><Button disabled variant='light'>New</Button></Col>
+        <Col><Button variant='light' onClick={()=>addQuest("hi", "hi")}>New</Button></Col>
       </Row>
       <Row>
-        {(questData === null) ? (
+        {(typeof questData === 'undefined') ? (
             <Alert variant='light'>
               No quests available. Add some to get started.
             </Alert>
           ) : (
-              questData.map((name, i) => (
+              questData.map((q, i) => (
                 <Col sm={4} key={i} className="py-2">
                   <Card >
                     {/* <Card.Img variant="top" src="holder.js/100px180" /> */}
                     <Card.Body>
-                      <Card.Title>{name}</Card.Title>
-                      <Card.Text>
-                        Some quick example text to build on the card title and make up the
-                        bulk of the card's content.
-                      </Card.Text>
+                      <Card.Title>{q.name}</Card.Title>
+                      <Card.Text>{q.description}</Card.Text>
                       <Button variant="primary">Start Quest</Button>
                     </Card.Body>
                   </Card>
@@ -52,7 +82,6 @@ function LevelListDisplay(){
     </Container>
   )
 }
-
 
 function GoalTrackDisplay({journeyIdx, removeJourney}){
   const [data, setData] = useState([{}])
@@ -75,7 +104,7 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
         <Col sm={11}><h1>{data.journeyName}</h1></Col>
         <Col>
           <Dropdown>
-            <Dropdown.Toggle></Dropdown.Toggle>
+            <Dropdown.Toggle variant="light"></Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item disabled>Edit Details</Dropdown.Item>
               <Dropdown.Item onClick={() => removeJourney(journeyIdx)}>Remove</Dropdown.Item>
@@ -108,7 +137,7 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
       </Row>
       <Row><Col><hr/></Col></Row>
       <Row>
-        <LevelListDisplay/>
+        <LevelListDisplay journeyIdx={journeyIdx}/>
       </Row>
     </Container>
   )
@@ -174,7 +203,6 @@ function App(){
   };
 
   const removeJourney = (index) => {
-    console.log("removing")
     fetch('/remove_journey', {
       method: 'POST',
       headers: {

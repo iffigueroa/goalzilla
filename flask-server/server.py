@@ -26,6 +26,33 @@ def remove_journey():
     app.logger.info("removed")
     return jsonify({'message': f'Goal [{idx}] added successfully'})
 
+@app.route("/quest_preview")
+def get_quest_preview():
+    args = request.args
+    journeyIdx = args.get('journeyIdx')
+    if journeyIdx: 
+        journeyIdx = int(journeyIdx)
+        return app_data.get_quest_preview(journeyIdx=journeyIdx)
+
+
+@app.route("/remove_quest", methods=['POST'])
+def remove_quest():
+    data = request.get_json()
+    journeyIdx = data.get('journeyIdx')
+    questIdx = data.get('questIdx')
+    app_data.remove_quest(journeyIdx=journeyIdx, questIdx=questIdx)
+    return jsonify({'message': 'Quest removed.'})
+
+
+@app.route("/add_quest", methods=['POST'])
+def add_quest():
+    data = request.get_json()
+    journeyIdx = data.get('journeyIdx')
+    name = data.get('name')
+    desc = data.get('description')
+    app_data.add_quest(journeyIdx=journeyIdx, name=name, description=desc)
+    return jsonify({'message': 'Quest added.'})
+
 @app.route("/journeyDetails")
 def getJourneyDetails():
     journeyIdx = request.args.get('index')

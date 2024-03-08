@@ -1,6 +1,29 @@
 from typing import List 
 from enum import Enum
 
+class Task():
+    pass
+
+class QuestStatus(Enum): 
+    NOT_STARTED = 'Not Started'
+    IN_PROGRESS = 'In Progress'
+    COMPLETE = 'Complete'
+
+class Quest():
+    def __init__(self, name: str, description: str):
+        self.name: str = name
+        self.description: str = description
+        self.status: QuestStatus = QuestStatus.NOT_STARTED
+        self.tasks: List[Task]= []
+
+    def get_preview(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'status': str(self.status.value),
+        }
+    
+
 class JourneyStatus(Enum): 
     ACTIVE = 'Active'
     INACTIVE = 'Inactive'
@@ -9,9 +32,13 @@ class Journey():
     def __init__(self, name: str, description: str):
         self.name: str = name
         self.description: str = description
-        self.quests: List = []
+        self.quests: List[Quest]= [
+            Quest("test1", "hello"),
+            Quest("test2", "hello"),
+            Quest("test3", "hello"),
+        ] 
         self.status: JourneyStatus = JourneyStatus.INACTIVE
-        self.progress: int = 0
+        self.progress: int = 50
     
     def set_journey_status(self, active: bool):
         self.status =  JourneyStatus.ACTIVE if active else JourneyStatus.INACTIVE
@@ -19,8 +46,8 @@ class Journey():
     def update_details(self):
         pass
 
-    def add_quest(self, new_quest):
-        self.quests.append(new_quest)
+    def add_quest(self, name, description):
+        self.quests.append(Quest(name, description))
 
     def get_progress(self): 
         return 0
@@ -32,8 +59,9 @@ class Journey():
             'questsComplete': 2, 
             'totalQuests': 10,
             'progress': self.progress,
-            'quests': []
         }
+    def get_quests_preview(self):
+        return {'quests': [q.get_preview() for q in self.quests]}
 
 
 class GoalzillaData():
@@ -61,4 +89,14 @@ class GoalzillaData():
 
     def remove_journey(self, index):
         self.goals.pop(index)
+
+    
+    def get_quest_preview(self, journeyIdx):
+        return self.goals[journeyIdx].get_quests_preview()
         
+    def add_quest(self, journeyIdx, name, description):
+        self.goals[journeyIdx].add_quest(name, description)
+
+    def remove_quest(self, journeyIdx, questIdx):
+        pass
+        # self.goals[journeyIdx].remove_quest(questIdx)
