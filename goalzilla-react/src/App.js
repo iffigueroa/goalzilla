@@ -4,7 +4,7 @@ import React, {useState, useEffect} from 'react'
 import ListGroup from 'react-bootstrap/ListGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Container, Card, Button, Form, Dropdown, ProgressBar, Accordion, Navbar} from 'react-bootstrap';
+import { Alert, Container, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
 
 function NavHeader() {
   return (
@@ -14,27 +14,41 @@ function NavHeader() {
   );
 }
 
-
 function LevelListDisplay(){
+  // const questData = ["test", 'Test', 'test']
+  const questData = ["test", 'Test', 'test', "test", 'Test', 'test']
+  // const questData = null
+
   // Levels can either be completed in random order or in sequence - make this an attribute
   return (
-    <Container>
+    <Container fluid>
       <Row>
-        <Col><h3>Quests</h3></Col>
+        <Col sm={10}><h3>Quests</h3></Col>
+        <Col><Button disabled variant='light'>New</Button></Col>
       </Row>
       <Row>
-        <Col>
-          <Accordion>
-            <Accordion.Item>
-              <Accordion.Header>Placeholder</Accordion.Header>
-              <Accordion.Body>
-                Some Placeholder Detail
-              </Accordion.Body>
-            </Accordion.Item>
-          </Accordion>
-        </Col>
+        {(questData === null) ? (
+            <Alert variant='light'>
+              No quests available. Add some to get started.
+            </Alert>
+          ) : (
+              questData.map((name, i) => (
+                <Col sm={4} key={i} className="py-2">
+                  <Card >
+                    {/* <Card.Img variant="top" src="holder.js/100px180" /> */}
+                    <Card.Body>
+                      <Card.Title>{name}</Card.Title>
+                      <Card.Text>
+                        Some quick example text to build on the card title and make up the
+                        bulk of the card's content.
+                      </Card.Text>
+                      <Button variant="primary">Start Quest</Button>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))
+        )}
       </Row>
-      
     </Container>
   )
 }
@@ -57,21 +71,22 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
 
   return (
     <Container fluid="sm">
-      <Row fluid>
+      <Row >
         <Col sm={11}><h1>{data.journeyName}</h1></Col>
         <Col>
           <Dropdown>
             <Dropdown.Toggle></Dropdown.Toggle>
             <Dropdown.Menu>
-              <Dropdown.Item>Edit Details</Dropdown.Item>
+              <Dropdown.Item disabled>Edit Details</Dropdown.Item>
               <Dropdown.Item onClick={() => removeJourney(journeyIdx)}>Remove</Dropdown.Item>
-              <Dropdown.Item>Set Active</Dropdown.Item>
+              <Dropdown.Item disabled>Set Active</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         </Col>
       </Row>
-      <Row>
-        <Col>
+      <Row><Col><hr/></Col></Row>
+      <Row>        
+        <Col sm ={8}>
           <Card>
             <Card.Body>
                 {data.journeyDetail}
@@ -79,18 +94,19 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
           </Card>
         </Col>
         <Col>
-        <Card>
-          <Card.Body>
-            <Card.Title>Quests Completed</Card.Title>
-            <Card.Title>{data.questsComplete}/{data.totalQuests}</Card.Title>
-          </Card.Body>
-        </Card>
+          <Card>
+            <Card.Body className="text-center">
+              <Card.Title>Quests Completed</Card.Title>
+              <Card.Title>{data.questsComplete}/{data.totalQuests}</Card.Title>
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
-      <Row>
+      <Row><Col><h5>Overall Progress</h5></Col></Row>
+      <Row className="p-2">
         <Col><ProgressBar now={data.progress} label={`${data.progress}%`}/></Col>
       </Row>
-
+      <Row><Col><hr/></Col></Row>
       <Row>
         <LevelListDisplay/>
       </Row>
