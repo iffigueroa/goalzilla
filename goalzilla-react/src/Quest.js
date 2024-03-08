@@ -1,11 +1,12 @@
 import React, {useState, useEffect} from 'react'
-import { Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
+import { Alert, Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar} from 'react-bootstrap';
 
-import { useParams, useLocation} from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 
 
 function QuestDisplay(){
+    const navigate = useNavigate()
     const params = useLocation()    
     const {journeyIdx, questIdx} =  params.state
 
@@ -13,6 +14,21 @@ function QuestDisplay(){
     const [journeyData, setJourneyData] = useState([{}])
     const [questData, setQuestData] = useState([{}])
 
+    const removeQuest = () => {
+        fetch('/remove_quest', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": currentQuestIdx}),
+        })
+        .then((res) => res.text())
+        .then((message) => {
+            console.log(message);
+        });
+        setCurrentQuestIdx(currentQuestIdx -1)
+        console.log("updated currentQuestIdx "+currentQuestIdx)
+    }
 
     useEffect(() => {
         fetch('/journeyDetails?index='+journeyIdx).then(
@@ -22,24 +38,33 @@ function QuestDisplay(){
             setJourneyData(data)
             }
         )
-    }, [])
-
-    useEffect(() => {
-        fetch('/questDetails?journeyIdx='+journeyIdx+'&questIdx='+currentQuestIdx).then(
-            res => res.json()
-        ).then(
-            data => {
-                setQuestData(data)
-                console.log("new quest data")
-                console.log(questData)
-            }
-        )
+       
     }, [currentQuestIdx])
 
-    const updateQuestIdx = (idx) => {
-        setCurrentQuestIdx(idx)
-    }
+    useEffect(() => {
+        console.log("Refreshing Quest data "+currentQuestIdx)
+        if(currentQuestIdx !== -1){
+            fetch('/questDetails?journeyIdx='+journeyIdx+'&questIdx='+currentQuestIdx).then(
+                res => res.json()
+            ).then(
+                data => {
+                    setQuestData(data)
+                }
+            )
+        }else{
+            setCurrentQuestIdx(0);
+        }
+        if (journeyData.questList){
+            console.log("Length "+ journeyData.questList.length)
+        }
+        
+    }, [currentQuestIdx])
 
+    useEffect(() => {
+        if ((journeyData.questList) && (journeyData.questList.length === 0)) {
+            navigate('/');
+        }
+    }, [journeyData])
     return (   
         <Container>
             <Row>
@@ -61,7 +86,12 @@ function QuestDisplay(){
                                 <p>Loading...</p>
                             ) : (
                                 journeyData.questList.map((name, i) => (
-                                    <ListGroup.Item key={i} onClick={() => updateQuestIdx(i)}>{name}</ListGroup.Item>
+                                    <ListGroup.Item 
+                                        className={i === currentQuestIdx ? "list-group-item-action active" : "list-group-item-action"}
+                                        key={i} 
+                                        onClick={() => setCurrentQuestIdx(i)}>
+                                            {name}
+                                    </ListGroup.Item>
                                 ))
                             )}
                         </ListGroup>
@@ -75,7 +105,7 @@ function QuestDisplay(){
                                 <Dropdown.Toggle variant="light"></Dropdown.Toggle>
                                 <Dropdown.Menu>
                                 <Dropdown.Item disabled onClick={() => console.log("Edit Details")}>Edit Details</Dropdown.Item>
-                                <Dropdown.Item disabled onClick={() => console.log("Remove")}>Remove</Dropdown.Item>
+                                <Dropdown.Item onClick={removeQuest}>Remove</Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
                         </Col>
@@ -91,13 +121,15 @@ function QuestDisplay(){
                         <Col><Button variant="light" className="float-right" onClick={()=>console.log("Adding New Task")}>+</Button></Col>
                     </Row>
                     <ListGroup>
-                        {(typeof questData.tasks === "undefined") ? (
-                            <p>Loading...</p>
-                            ) : (
-                                questData.tasks.map((name, i) => (
-                                <ListGroup.Item key={i} onClick={()=>console.log(i)}>{name}</ListGroup.Item>
-                            ))
-                        )}
+                    {questData.tasks && questData.tasks.length > 0 ? (
+                        questData.tasks.map((name, i) => (
+                            <ListGroup.Item key={i} onClick={()=>console.log(i)}>{name}</ListGroup.Item>
+                        ))
+                    ) : (
+                        <Alert variant='light'>
+                            No tasks available. Add some to get started.
+                        </Alert>
+                    )}
                     </ListGroup>
                     
                 </Col>

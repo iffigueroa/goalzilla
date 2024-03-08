@@ -68,7 +68,9 @@ class Journey():
     def get_quests_preview(self):
         return {'quests': [q.get_preview() for q in self.quests]}
     
-    def get_quest_details(self, questIdx): 
+    def get_quest_details(self, questIdx):
+        if questIdx < 0 or questIdx >= len(self.quests):
+            return {'error': "Index out of range"}
         return self.quests[questIdx].get_preview()
 
 
