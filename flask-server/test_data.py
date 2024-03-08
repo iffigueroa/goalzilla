@@ -33,9 +33,9 @@ class Journey():
         self.name: str = name
         self.description: str = description
         self.quests: List[Quest]= [
-            Quest("test1", "hello"),
-            Quest("test2", "hello"),
-            Quest("test3", "hello"),
+            Quest("This is a test quest name that's kinda long", "hello"),
+            # Quest("test2", "hello"),
+            # Quest("test3", "hello"),
         ] 
         self.status: JourneyStatus = JourneyStatus.INACTIVE
         self.progress: int = 50
@@ -48,6 +48,9 @@ class Journey():
 
     def add_quest(self, name, description):
         self.quests.append(Quest(name, description))
+    
+    def remove_quest(self, questIdx):
+        self.quests.pop(questIdx)
 
     def get_progress(self): 
         return 0
@@ -98,5 +101,4 @@ class GoalzillaData():
         self.goals[journeyIdx].add_quest(name, description)
 
     def remove_quest(self, journeyIdx, questIdx):
-        pass
-        # self.goals[journeyIdx].remove_quest(questIdx)
+        self.goals[journeyIdx].remove_quest(questIdx)

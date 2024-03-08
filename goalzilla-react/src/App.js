@@ -4,7 +4,7 @@ import React, {useState, useEffect} from 'react'
 import ListGroup from 'react-bootstrap/ListGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Alert, Container, CloseButton, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
+import { Alert, Container, Card, Button, Form, Dropdown, ProgressBar, Navbar} from 'react-bootstrap';
 
 function NavHeader() {
   return (
@@ -28,6 +28,29 @@ function LevelListDisplay({journeyIdx}){
     )
   }, [journeyIdx])
 
+  const removeQuest = (i) => {
+    console.log("Remove Quest"+i)
+    fetch('/remove_quest', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": i}),
+    })
+      .then((res) => res.text())
+      .then((message) => {
+        console.log(message);
+        // Refresh the list of members after adding a new member
+        fetch('/quest_preview?journeyIdx='+journeyIdx).then(
+          res => res.json()
+        ).then(
+            data => {
+              setQuestData(data.quests)        
+              console.log(questData)
+            }
+          )
+      });
+  }
 
   const addQuest = (name, description) => {
     // Add new member to the list
@@ -57,23 +80,25 @@ function LevelListDisplay({journeyIdx}){
     <Container fluid>
       <Row>
         <Col sm={10}><h3>Quests</h3></Col>
-        <Col><Button variant='light' onClick={()=>addQuest("hi", "hi")}>New</Button></Col>
+        <Col><Button variant='light' className="float-right" onClick={()=>addQuest("hi", "hi")}>New</Button></Col>
       </Row>
       <Row>
-        {(typeof questData === 'undefined') ? (
+        {(questData.length === 0) ? (
             <Alert variant='light'>
               No quests available. Add some to get started.
             </Alert>
           ) : (
               questData.map((q, i) => (
                 <Col sm={4} key={i} className="py-2">
-                  <Card >
+                  <Card className="h-100">
                     {/* <Card.Img variant="top" src="holder.js/100px180" /> */}
                     <Card.Body>
-                      <Card.Title>{q.name}</Card.Title>
+                      <Button size="sm" className="float-right" variant='light' onClick={()=>removeQuest(i)}>X</Button>
+                      <Card.Title>{q.name}</Card.Title> 
                       <Card.Text>{q.description}</Card.Text>
-                      <Button variant="primary">Start Quest</Button>
+                      
                     </Card.Body>
+                    <Card.Footer><Button>Start Quest</Button></Card.Footer>
                   </Card>
                 </Col>
               ))
