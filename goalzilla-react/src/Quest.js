@@ -1,18 +1,75 @@
 import React, {useState, useEffect} from 'react'
-import { Alert, Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar} from 'react-bootstrap';
+import { Alert, Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form } from 'react-bootstrap';
 
 import { useLocation, useNavigate } from 'react-router-dom'
 
+
+function QuestForm({addQuest}){
+    const [questName, setQuestName] = useState('')
+    const [description, setDescription] = useState('')
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        addQuest(questName, description)
+    }
+    return (
+        <Container className="text-center">
+            <Card>
+                <Card.Body>
+                    <Card.Title>Add a new Quest!</Card.Title>
+                    <Form onSubmit={handleSubmit}>
+                      <Form.Group>
+                        <Form.Label>Give it a name:</Form.Label>
+                        <Form.Control onChange={(e) => setQuestName(e.target.value)} placeholder="Enter name here"/>
+                        <Form.Label>Tell me more: </Form.Label>
+                        <Form.Control onChange={(e) => setDescription(e.target.value)} placeholder="Enter a quick description here"/>
+                      </Form.Group>
+                      <br/>
+                      <Button variant="light" type="submit">Submit</Button>
+                    </Form>
+                </Card.Body>
+            </Card>
+        </Container>
+      )
+}
 
 
 function QuestDisplay(){
     const navigate = useNavigate()
     const params = useLocation()    
     const {journeyIdx, questIdx} =  params.state
+    const [showQuestForm, setShowQuestForm] = useState(false)
 
     const [currentQuestIdx, setCurrentQuestIdx] = useState(questIdx)
     const [journeyData, setJourneyData] = useState([{}])
     const [questData, setQuestData] = useState([{}])
+
+
+    const toggleQuestForm = () => {
+        setShowQuestForm((prev) => !prev);
+    };
+
+    const addQuest = (name, description) => {
+    // Add new member to the list
+    fetch('/add_quest', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ "journeyIdx": journeyIdx, "name": name, "description":description}),
+    })
+        .then((res) => res.text())
+        .then((message) => {
+        console.log(message);
+        // Refresh the list of members after adding a new member
+        fetch('/journeyDetails?index='+journeyIdx).then(
+            res => res.json()
+        ).then(
+            data => {
+            setJourneyData(data)
+            toggleQuestForm()
+            }
+        )})
+    };
 
     const removeQuest = () => {
         fetch('/remove_quest', {
@@ -78,9 +135,16 @@ function QuestDisplay(){
                                 <ProgressBar now={journeyData.progress} label={`${journeyData.progress}%`}/>
                             </Card.Body>
                         </Card>
-                    </Row>
-                    <Row className='p-2'><h3>Quests</h3></Row>
+                    </Row>                   
                     <Row className='p-2'>
+                        <Col sm={8}><h3>Quests</h3></Col>
+                        <Col><Button className='float-right' variant='light' onClick={toggleQuestForm}>{showQuestForm ? '-' : '+'}</Button></Col>
+                    </Row>
+                    <Row className = 'p-2'>
+                    {showQuestForm &&  <QuestForm addQuest={addQuest}/>}
+                    </Row>
+                    <hr/>
+                    <Row >
                         <ListGroup className="w-100">
                             {(typeof journeyData.questList === "undefined") ? (
                                 <p>Loading...</p>
@@ -139,4 +203,4 @@ function QuestDisplay(){
       )
   }
   
-  export default QuestDisplay
+  export {QuestDisplay, QuestForm}

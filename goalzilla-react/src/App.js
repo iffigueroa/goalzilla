@@ -1,5 +1,5 @@
 import { Container, Navbar} from 'react-bootstrap';
-import QuestDisplay from './Quest';
+import {QuestDisplay} from './Quest';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Journeys from './Journeys';

@@ -3,7 +3,10 @@ import { Row, Col, ListGroup, Alert, Container, Card, Button, Form, Dropdown, Pr
 
 import { useNavigate } from 'react-router-dom'
 
+import { QuestForm } from './Quest'
+
 function LevelListDisplay({journeyIdx}){
+  const [showQuestForm, setShowQuestForm] = useState(false)
   const [questData, setQuestData] = useState([{}])
   const navigate = useNavigate()
   useEffect(() => {
@@ -35,7 +38,6 @@ function LevelListDisplay({journeyIdx}){
         ).then(
             data => {
               setQuestData(data.quests)        
-              console.log(questData)
             }
           )
       });
@@ -58,13 +60,15 @@ function LevelListDisplay({journeyIdx}){
           res => res.json()
         ).then(
             data => {
-              setQuestData(data.quests)        
-              console.log(questData)
+              setQuestData(data.quests)  
+              toggleQuestForm()
             }
           )
       });
   };
-
+    const toggleQuestForm = () => {
+        setShowQuestForm((prev) => !prev);
+    };
   const navigateToQuest = (journeyIdx, questIdx) =>{
     navigate('/quest', { state: {journeyIdx, questIdx}});
   };
@@ -73,8 +77,9 @@ function LevelListDisplay({journeyIdx}){
     <Container fluid>
       <Row>
         <Col sm={10}><h3>Quests</h3></Col>
-        <Col><Button variant='light' className="float-right" onClick={()=>addQuest("hi", "hi")}>New</Button></Col>
+        <Col><Button className='float-right' variant='light' onClick={toggleQuestForm}>{showQuestForm ? '-' : '+'}</Button></Col>
       </Row>
+      {showQuestForm &&  <Row><QuestForm addQuest={addQuest}/></Row>}
       <Row>
         {(questData.length === 0) ? (
             <Alert variant='light'>
