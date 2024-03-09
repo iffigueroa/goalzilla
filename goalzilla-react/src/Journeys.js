@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { QuestForm } from './Quest'
 
-function LevelListDisplay({journeyIdx}){
+function QuestDisplay({handleQuestAdded, journeyIdx}){
   const [showQuestForm, setShowQuestForm] = useState(false)
   const [questData, setQuestData] = useState([{}])
   const navigate = useNavigate()
@@ -32,7 +32,6 @@ function LevelListDisplay({journeyIdx}){
       .then((res) => res.text())
       .then((message) => {
         console.log(message);
-        // Refresh the list of members after adding a new member
         fetch('/quest_preview?journeyIdx='+journeyIdx).then(
           res => res.json()
         ).then(
@@ -44,7 +43,6 @@ function LevelListDisplay({journeyIdx}){
   }
 
   const addQuest = (name, description) => {
-    // Add new member to the list
     fetch('/add_quest', {
       method: 'POST',
       headers: {
@@ -55,16 +53,17 @@ function LevelListDisplay({journeyIdx}){
       .then((res) => res.text())
       .then((message) => {
         console.log(message);
-        // Refresh the list of members after adding a new member
         fetch('/quest_preview?journeyIdx='+journeyIdx).then(
           res => res.json()
         ).then(
             data => {
               setQuestData(data.quests)  
-              toggleQuestForm()
+              
             }
           )
-      });
+      })
+      toggleQuestForm()
+      handleQuestAdded()
   };
     const toggleQuestForm = () => {
         setShowQuestForm((prev) => !prev);
@@ -106,9 +105,13 @@ function LevelListDisplay({journeyIdx}){
   )
 }
 
-function GoalTrackDisplay({journeyIdx, removeJourney}){
+function JourneyDisplay({journeyIdx, removeJourney}){
   const [data, setData] = useState([{}])
-  
+  const [questsAdded, setQuestsAdded] = useState(0)
+
+  const handleQuestAdded = () => {
+    setQuestsAdded(questsAdded+1)
+  }
   useEffect(() => {
     fetch('/journeyDetails?index='+journeyIdx).then(
       res => res.json()
@@ -118,7 +121,7 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
         console.log(data)
       }
     )
-  }, [journeyIdx])
+  }, [journeyIdx, questsAdded])
 
   return (
     <Container fluid="sm">
@@ -136,16 +139,16 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
         </Col>
       </Row>
       <Row><Col><hr/></Col></Row>
-      <Row>        
+      <Row className="d-flex align-items-stretch">        
         <Col sm ={8}>
-          <Card>
+          <Card className="h-100">
             <Card.Body>
                 {data.journeyDetail}
             </Card.Body>
           </Card>
         </Col>
         <Col>
-          <Card>
+          <Card className="h-100">
             <Card.Body className="text-center">
               <Card.Title>Quests Completed</Card.Title>
               <Card.Title>{data.questsComplete}/{data.totalQuests}</Card.Title>
@@ -153,13 +156,13 @@ function GoalTrackDisplay({journeyIdx, removeJourney}){
           </Card>
         </Col>
       </Row>
-      <Row><Col><h5>Overall Progress</h5></Col></Row>
+      <Row><Col className='m-2'><h5>Overall Progress</h5></Col></Row>
       <Row className="p-2">
         <Col><ProgressBar now={data.progress} label={`${data.progress}%`}/></Col>
       </Row>
       <Row><Col><hr/></Col></Row>
       <Row>
-        <LevelListDisplay journeyIdx={journeyIdx}/>
+        <QuestDisplay handleQuestAdded={handleQuestAdded} journeyIdx={journeyIdx}/>
       </Row>
     </Container>
   )
@@ -202,7 +205,7 @@ function Journeys(){
   const [showNewGoalForm, setShowNewGoalForm] = useState(false)
   const [showGoalTrack, setShowGoalTrack] = useState(false)
   const [goalTrackId, setGoalTrackId] = useState(null)
-
+  
   useEffect(() => {
     fetch('/goals').then(
       res => res.json()
@@ -288,7 +291,7 @@ function Journeys(){
 
             <Col>
             {showNewGoalForm && <NewGoalForm addNewGoal={addNewGoal}/>}
-            {data.goals?.length > 0 && showGoalTrack && <GoalTrackDisplay journeyIdx={goalTrackId} removeJourney={removeJourney} />}
+            {data.goals?.length > 0 && showGoalTrack && <JourneyDisplay journeyIdx={goalTrackId} removeJourney={removeJourney} />}
             </Col>
         </Row>
       </Container>   

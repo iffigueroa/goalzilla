@@ -35,8 +35,6 @@ class Journey():
         self.description: str = description
         self.quests: List[Quest]= [
             Quest("This is a test quest name that's kinda long", "hello"),
-            # Quest("test2", "hello"),
-            # Quest("test3", "hello"),
         ] 
         self.status: JourneyStatus = JourneyStatus.INACTIVE
         self.progress: int = 50
@@ -60,11 +58,19 @@ class Journey():
         return {
             'journeyName': self.name,
             'journeyDetail': self.description,
-            'questsComplete': 2, 
-            'totalQuests': 10,
+            'questsComplete': self.get_competed_quests(),
+            'totalQuests': len(self.quests),
             'progress': self.progress,
             'questList': [q.name for q in self.quests]
         }
+    
+    def get_competed_quests(self): 
+        complete = 0 
+        for q in self.quests: 
+            if q.status == QuestStatus.COMPLETE:
+                complete +=1
+        return complete
+    
     def get_quests_preview(self):
         return {'quests': [q.get_preview() for q in self.quests]}
     
