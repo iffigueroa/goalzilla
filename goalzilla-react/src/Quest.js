@@ -1,7 +1,80 @@
 import React, {useState, useEffect} from 'react'
-import { Alert, Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form } from 'react-bootstrap';
+import { Alert, Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form, Modal} from 'react-bootstrap';
 
 import { useLocation, useNavigate } from 'react-router-dom'
+
+function TaskForm({addTask}){
+    const [taskName, setTaskName] = useState('')
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        addTask(taskName)
+    }
+    return (
+        <Container className="text-center">
+            <Card>
+                <Card.Body>
+                    <Card.Title>Add a Task!</Card.Title>
+                    <Form onSubmit={handleSubmit}>
+                      <Form.Group>
+                        <Form.Label>Give it a name:</Form.Label>
+                        <Form.Control onChange={(e) => setTaskName(e.target.value)} placeholder="Enter name here"/>
+                      </Form.Group>
+                      <br/>
+                      <Button variant="light" type="submit">Submit</Button>
+                    </Form>
+                </Card.Body>
+            </Card>
+        </Container>
+      )
+}
+
+
+function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
+    const [curentTaskIdx, setCurrentTaskIdx] = useState(taskIdx)
+    const [currentQuestIdx, setCurrentQuestIdx] = useState(questIdx)
+    const [taskDetails, setTaskDetails] = useState({})
+    useEffect(() => {
+        const params = { journeyIdx, questIdx, taskIdx };
+        const queryString = Object.keys(params)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+            .join('&');
+        const url = `/getTaskDetails?${queryString}`;
+
+        fetch(url).then(
+            res => res.json()
+        ).then(
+            data => {
+                setTaskDetails(data)
+            }
+        )
+        setCurrentTaskIdx(taskIdx)
+        setCurrentQuestIdx(questIdx)
+    }, [taskIdx, questIdx])
+
+    return(
+        <Modal show={show}
+            size="lg"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+        >
+            <Modal.Header>
+            <Modal.Title id="contained-modal-title-vcenter">
+                {taskDetails.name} {curentTaskIdx} {currentQuestIdx} 
+            </Modal.Title>
+            <Button onClick={onHide} className='float-right' variant='light'>X</Button>
+            </Modal.Header>
+            <Modal.Body>
+            
+            </Modal.Body>
+            <Modal.Footer>
+                <Col><Button  className='text-center w-100' onClick={() => removeTask(curentTaskIdx)} variant='light'>Delete</Button></Col>
+                <Col><Button  disabled className='text-center w-100' onClick={onHide} variant='light'>Save</Button></Col>
+                <Col><Button  className='text-center w-100' onClick={onHide} variant='light'>Close</Button></Col>
+            </Modal.Footer>
+        </Modal>
+    )
+}
+
 
 
 function QuestForm({addQuest}){
@@ -38,7 +111,9 @@ function QuestDisplay(){
     const params = useLocation()    
     const {journeyIdx, questIdx} =  params.state
     const [showQuestForm, setShowQuestForm] = useState(false)
-
+    const [showTaskForm, setShowTaskForm] = useState(false)
+    const [modalShow, setModalShow] = useState(false);
+    const [currentTaskIdx, setCurrentTaskIdx] = useState(-1)
     const [currentQuestIdx, setCurrentQuestIdx] = useState(questIdx)
     const [journeyData, setJourneyData] = useState([{}])
     const [questData, setQuestData] = useState([{}])
@@ -47,9 +122,11 @@ function QuestDisplay(){
     const toggleQuestForm = () => {
         setShowQuestForm((prev) => !prev);
     };
+    const toggleTaskForm = () => {
+        setShowTaskForm((prev) => !prev);
+    };
 
     const addQuest = (name, description) => {
-    // Add new member to the list
     fetch('/add_quest', {
         method: 'POST',
         headers: {
@@ -60,7 +137,6 @@ function QuestDisplay(){
         .then((res) => res.text())
         .then((message) => {
         console.log(message);
-        // Refresh the list of members after adding a new member
         fetch('/journeyDetails?index='+journeyIdx).then(
             res => res.json()
         ).then(
@@ -70,6 +146,39 @@ function QuestDisplay(){
             }
         )})
     };
+
+    const addTask = (name) => {
+        fetch('/add_task', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": currentQuestIdx, 'taskName': name}),
+        })
+            .then((res) => res.text())
+            .then((message) => {
+                console.log(message);
+                refreshQuestData()
+                toggleTaskForm()
+            })
+        };
+
+    const removeTask = (i) => {
+        console.log("Remove Quest"+i)
+        fetch('/remove_task', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": currentQuestIdx, "taskIdx": i }),
+        })
+        .then((res) => res.text())
+        .then((message) => {
+            console.log(message);
+            refreshQuestData()
+            setModalShow(false)
+        });
+    }
 
     const removeQuest = () => {
         fetch('/remove_quest', {
@@ -97,8 +206,8 @@ function QuestDisplay(){
         )
        
     }, [currentQuestIdx])
-
-    useEffect(() => {
+    
+    const refreshQuestData = () => {
         console.log("Refreshing Quest data "+currentQuestIdx)
         if(currentQuestIdx !== -1){
             fetch('/questDetails?journeyIdx='+journeyIdx+'&questIdx='+currentQuestIdx).then(
@@ -114,7 +223,10 @@ function QuestDisplay(){
         if (journeyData.questList){
             console.log("Length "+ journeyData.questList.length)
         }
-        
+    }
+
+    useEffect(() => {
+        refreshQuestData()
     }, [currentQuestIdx])
 
     useEffect(() => {
@@ -122,6 +234,12 @@ function QuestDisplay(){
             navigate('/');
         }
     }, [journeyData])
+
+    const showTask = (i) => {
+        setCurrentTaskIdx(i)
+        setModalShow(true)
+    }
+
     return (   
         <Container>
             <Row>
@@ -182,12 +300,13 @@ function QuestDisplay(){
                     <hr/>
                     <Row>
                         <Col sm={11}><h3 className='p-2'>Task List</h3></Col>
-                        <Col><Button variant="light" className="float-right" onClick={()=>console.log("Adding New Task")}>+</Button></Col>
+                        <Col><Button className='float-right' variant='light' onClick={toggleTaskForm}>{showTaskForm ? '-' : '+'}</Button></Col>
                     </Row>
+                    <Row>{showTaskForm &&  <TaskForm addTask={addTask}/>}</Row>
                     <ListGroup>
                     {questData.tasks && questData.tasks.length > 0 ? (
                         questData.tasks.map((name, i) => (
-                            <ListGroup.Item key={i} onClick={()=>console.log(i)}>{name}</ListGroup.Item>
+                            <ListGroup.Item key={i} onClick={()=>showTask(i)}>{name}</ListGroup.Item>
                         ))
                     ) : (
                         <Alert variant='light'>
@@ -195,7 +314,8 @@ function QuestDisplay(){
                         </Alert>
                     )}
                     </ListGroup>
-                    
+                    <Row></Row>
+                    <TaskDialog show={modalShow} onHide={() => setModalShow(false)} removeTask={removeTask} journeyIdx={journeyIdx} questIdx={currentQuestIdx} taskIdx={currentTaskIdx}/>
                 </Col>
             </Row>
 

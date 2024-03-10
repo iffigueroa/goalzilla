@@ -2,7 +2,13 @@ from typing import List
 from enum import Enum
 
 class Task():
-    pass
+    def __init__(self, name): 
+        self.name = name
+
+    def get_task_details(self):
+        return {
+            "name": self.name
+        }
 
 class QuestStatus(Enum): 
     NOT_STARTED = 'Not Started'
@@ -14,14 +20,24 @@ class Quest():
         self.name: str = name
         self.description: str = description
         self.status: QuestStatus = QuestStatus.NOT_STARTED
-        self.tasks: List[Task]= []
+        self.tasks: List[Task]= [
+            # Task("test"),
+            # Task("test2"),
+            # Task("test3"),
+            # Task("test4"),
+        ]
 
+    def get_task_details(self, taskIdx):
+        if taskIdx < 0 or taskIdx >= len(self.tasks):
+            return {'error': "Index out of range"}
+        return self.tasks[taskIdx].get_task_details()
+    
     def get_preview(self):
         return {
             'name': self.name,
             'description': self.description,
             'status': str(self.status.value),
-            'tasks': ["step one", "step two", "step three"]
+            'tasks': [t.name for t in self.tasks]
         }
     
 
@@ -34,7 +50,7 @@ class Journey():
         self.name: str = name
         self.description: str = description
         self.quests: List[Quest]= [
-            Quest("This is a test quest name that's kinda long", "hello"),
+            # Quest("This is a test quest name that's kinda long", "hello"),
         ] 
         self.status: JourneyStatus = JourneyStatus.INACTIVE
         self.progress: int = 50
@@ -79,6 +95,10 @@ class Journey():
             return {'error': "Index out of range"}
         return self.quests[questIdx].get_preview()
 
+    def get_task_from_quest(self, questIdx, taskIdx):
+        if questIdx < 0 or questIdx >= len(self.quests):
+            return {'error': "Index out of range"}
+        return self.quests[questIdx].get_task_details(taskIdx)
 
 class GoalzillaData():
     # Eventually may be good to put this in an external source...
@@ -98,9 +118,9 @@ class GoalzillaData():
     
     def get_test_defaults(self):
         return [
-            Journey(name = 'Test1', description = 'Hello1'),
-            Journey(name = 'Test2', description = 'Hello2'),
-            Journey(name = 'Test3', description = 'Hello3'), 
+            # Journey(name = 'Test1', description = 'Hello1'),
+            # Journey(name = 'Test2', description = 'Hello2'),
+            # Journey(name = 'Test3', description = 'Hello3'), 
         ]
 
     def remove_journey(self, index):
@@ -118,3 +138,16 @@ class GoalzillaData():
 
     def get_quest_details(self, journeyIdx, questIdx):
         return self.goals[journeyIdx].get_quest_details(questIdx)
+    
+    def get_task_details(self, journeyIdx, questIdx, taskIdx):
+         return self.goals[journeyIdx].get_task_from_quest(questIdx, taskIdx)
+    
+    def remove_task(self, journeyIdx, questIdx, taskIdx): 
+        journey = self.goals[journeyIdx]
+        quest: Quest = journey.quests[questIdx]
+        quest.tasks.pop(taskIdx)
+
+    def add_task(self, journeyIdx, questIdx, name):
+        journey = self.goals[journeyIdx]
+        quest: Quest = journey.quests[questIdx]
+        quest.tasks.append(Task(name))

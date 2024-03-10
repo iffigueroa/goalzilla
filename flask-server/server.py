@@ -74,6 +74,34 @@ def get_quest_details():
         return app_data.get_quest_details(journeyIdx=int(journeyIdx), questIdx=int(questIdx))
     return {'error': 'No journey with provided id.'}
 
+@app.route('/getTaskDetails')
+def get_task_details():
+    args = request.args
+    journeyIdx = args.get('journeyIdx')
+    questIdx = args.get('questIdx')
+    taskIdx = args.get('taskIdx')
+    if journeyIdx and questIdx and taskIdx:
+        return app_data.get_task_details(journeyIdx=int(journeyIdx), questIdx=int(questIdx), taskIdx=int(taskIdx))
+    return {'error': 'No journey with provided id.'}
+
+@app.route("/remove_task", methods=['POST'])
+def remove_task():
+    data = request.get_json()
+    journeyIdx = data.get('journeyIdx')
+    questIdx = data.get('questIdx')
+    taskIdx = data.get('taskIdx')
+    app_data.remove_task(journeyIdx=int(journeyIdx), questIdx=int(questIdx), taskIdx=int(taskIdx))
+    return jsonify({'message': 'task removed.'})    
+
+@app.route("/add_task", methods=['POST'])
+def add_task():
+    data = request.get_json()
+    journeyIdx = data.get('journeyIdx')
+    questIdx = data.get('questIdx')
+    taskName = data.get('taskName')
+    app_data.add_task(journeyIdx=journeyIdx, questIdx=questIdx, name=taskName)
+    return jsonify({'message': 'Quest added.'})
+    
 
 
 if __name__ == '__main__':
