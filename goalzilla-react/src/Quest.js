@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { Alert, Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form, Modal} from 'react-bootstrap';
+import { Alert, Badge,Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form, Modal} from 'react-bootstrap';
 
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -51,6 +51,22 @@ function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
         setCurrentQuestIdx(questIdx)
     }, [taskIdx, questIdx])
 
+    const markComplete = () => {
+        fetch('/add_task_completion', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx":currentQuestIdx, "taskIdx": curentTaskIdx}),
+          })
+            .then((res) => res.text())
+            .then((message) =>{
+                console.log(message)
+            })
+        onHide()
+        //Update rendering? 
+    }
+
     return(
         <Modal show={show}
             size="lg"
@@ -59,7 +75,7 @@ function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
         >
             <Modal.Header>
             <Modal.Title id="contained-modal-title-vcenter">
-                {taskDetails.name} {curentTaskIdx} {currentQuestIdx} 
+                {taskDetails.name}
             </Modal.Title>
             <Button onClick={onHide} className='float-right' variant='light'>X</Button>
             </Modal.Header>
@@ -68,7 +84,7 @@ function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
             </Modal.Body>
             <Modal.Footer>
                 <Col><Button  className='text-center w-100' onClick={() => removeTask(curentTaskIdx)} variant='light'>Delete</Button></Col>
-                <Col><Button  disabled className='text-center w-100' onClick={onHide} variant='light'>Save</Button></Col>
+                <Col><Button  className='text-center w-100' onClick={markComplete} variant='light'>Mark Complete</Button></Col>
                 <Col><Button  className='text-center w-100' onClick={onHide} variant='light'>Close</Button></Col>
             </Modal.Footer>
         </Modal>
@@ -227,7 +243,7 @@ function QuestDisplay(){
 
     useEffect(() => {
         refreshQuestData()
-    }, [currentQuestIdx])
+    }, [currentQuestIdx, modalShow])
 
     useEffect(() => {
         if ((journeyData.questList) && (journeyData.questList.length === 0)) {
@@ -305,8 +321,13 @@ function QuestDisplay(){
                     <Row>{showTaskForm &&  <TaskForm addTask={addTask}/>}</Row>
                     <ListGroup>
                     {questData.tasks && questData.tasks.length > 0 ? (
-                        questData.tasks.map((name, i) => (
-                            <ListGroup.Item key={i} onClick={()=>showTask(i)}>{name}</ListGroup.Item>
+                        questData.tasks.map((task, i) => (
+                            <ListGroup.Item key={i} onClick={()=>showTask(i)}>
+                                <Row>
+                                <Badge bg="light">{task.status}</Badge>
+                                <p>{task.name}</p>
+                                </Row>
+                            </ListGroup.Item>
                         ))
                     ) : (
                         <Alert variant='light'>

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { QuestForm } from './Quest'
 
+
 function QuestDisplay({handleQuestAdded, journeyIdx}){
   const [showQuestForm, setShowQuestForm] = useState(false)
   const [questData, setQuestData] = useState([{}])
@@ -72,6 +73,17 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
     navigate('/quest', { state: {journeyIdx, questIdx}});
   };
 
+  const renderQuestAction = (status) =>  {
+    switch(status) {
+      case 'Complete':
+        return 'View Quest';
+      case 'In Progress':
+        return 'Continue Quest';
+      default:
+        return 'Start Quest';
+    }
+  }
+
   return (
     <Container fluid>
       <Row>
@@ -87,15 +99,13 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
           ) : (
               questData.map((q, i) => (
                 <Col sm={4} key={i} className="py-2">
-                  <Card className="h-100">
-                    {/* <Card.Img variant="top" src="holder.js/100px180" /> */}
+                  <Card className="h-100" >
                     <Card.Body>
                       <Button size="sm" className="float-right" variant='light' onClick={()=>removeQuest(i)}>X</Button>
                       <Card.Title>{q.name}</Card.Title> 
-                      <Card.Text>{q.description}</Card.Text>
-                      
+                      <Card.Text>{q.description}</Card.Text>                      
                     </Card.Body>
-                    <Card.Footer><Button onClick={()=>navigateToQuest(journeyIdx, i)}>Start Quest</Button></Card.Footer>
+                    <Card.Footer><Button onClick={()=>navigateToQuest(journeyIdx, i)}>{renderQuestAction(questData[i].status)}</Button></Card.Footer>
                   </Card>
                 </Col>
               ))

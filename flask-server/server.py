@@ -100,7 +100,17 @@ def add_task():
     questIdx = data.get('questIdx')
     taskName = data.get('taskName')
     app_data.add_task(journeyIdx=journeyIdx, questIdx=questIdx, name=taskName)
-    return jsonify({'message': 'Quest added.'})
+    return jsonify({'message': 'Task added.'})
+
+@app.route("/add_task_completion", methods=['POST'])
+def add_task_completion():
+    data = request.get_json()
+    journeyIdx = data.get('journeyIdx')
+    questIdx = data.get('questIdx')
+    taskIdx = data.get('taskIdx')
+    app.logger.info(f"Adding completion for {journeyIdx} {questIdx} {taskIdx}")
+    app_data.complete_task(journeyIdx=journeyIdx, questIdx=questIdx, taskIdx=taskIdx)
+    return jsonify({'message': 'Task Completed.'})
     
 
 

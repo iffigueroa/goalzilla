@@ -1,14 +1,32 @@
 from typing import List 
 from enum import Enum
 
+class TaskStatus(Enum): 
+    NOT_STARTED = 'Not Started'
+    IN_PROGRESS = 'In Progress'
+    COMPLETE = 'Complete'
+
 class Task():
     def __init__(self, name): 
         self.name = name
+        self.completions = 0
+        self.times_to_complete = 1
+        self.status = TaskStatus.NOT_STARTED
 
     def get_task_details(self):
         return {
-            "name": self.name
+            "name": self.name,
+            "status": str(self.status)
         }
+
+    def complete(self):
+        self.completions = self.completions + 1
+        if self.status == TaskStatus.COMPLETE:
+            return
+        if self.completions >= self.times_to_complete: 
+            self.status = TaskStatus.COMPLETE
+        else: 
+            self.status = TaskStatus.IN_PROGRESS
 
 class QuestStatus(Enum): 
     NOT_STARTED = 'Not Started'
@@ -37,9 +55,22 @@ class Quest():
             'name': self.name,
             'description': self.description,
             'status': str(self.status.value),
-            'tasks': [t.name for t in self.tasks]
+            'tasks': [
+                {
+                    'name':t.name, 
+                    'status': str(t.status.value)
+                }
+                for t in self.tasks
+            ]
         }
     
+    def complete_task(self, taskIdx):
+        print(self.tasks)
+        if taskIdx < 0 or taskIdx >= len(self.tasks):
+            print(f"{taskIdx} {len(self.tasks)}\n\n")
+            return {'error': "Index out of range"}
+        self.tasks[taskIdx].complete()
+        return {"success": "task completed."}
 
 class JourneyStatus(Enum): 
     ACTIVE = 'Active'
@@ -50,7 +81,7 @@ class Journey():
         self.name: str = name
         self.description: str = description
         self.quests: List[Quest]= [
-            # Quest("This is a test quest name that's kinda long", "hello"),
+            Quest("This is a test quest name that's kinda long", "hello"),
         ] 
         self.status: JourneyStatus = JourneyStatus.INACTIVE
         self.progress: int = 50
@@ -117,16 +148,16 @@ class GoalzillaData():
         return self.goals[index].get_journey_details()
     
     def get_test_defaults(self):
+        # return []
         return [
-            # Journey(name = 'Test1', description = 'Hello1'),
-            # Journey(name = 'Test2', description = 'Hello2'),
-            # Journey(name = 'Test3', description = 'Hello3'), 
+            Journey(name = 'Test1', description = 'Hello1'),
+            Journey(name = 'Test2', description = 'Hello2'),
+            Journey(name = 'Test3', description = 'Hello3'), 
         ]
 
     def remove_journey(self, index):
         self.goals.pop(index)
 
-    
     def get_quest_preview(self, journeyIdx):
         return self.goals[journeyIdx].get_quests_preview()
         
@@ -151,3 +182,9 @@ class GoalzillaData():
         journey = self.goals[journeyIdx]
         quest: Quest = journey.quests[questIdx]
         quest.tasks.append(Task(name))
+
+    def complete_task(self, journeyIdx, questIdx, taskIdx):
+        journey = self.goals[journeyIdx]
+        quest: Quest = journey.quests[questIdx]
+        print("in complete task main")
+        quest.complete_task(taskIdx)
