@@ -174,6 +174,7 @@ function QuestDisplay(){
             .then((res) => res.text())
             .then((message) => {
                 console.log(message);
+                refreshJourneyData()
                 refreshQuestData()
                 toggleTaskForm()
             })
@@ -213,6 +214,10 @@ function QuestDisplay(){
     }
 
     useEffect(() => {
+        refreshJourneyData()
+    }, [currentQuestIdx, modalShow])
+
+    const refreshJourneyData = () => {
         fetch('/journeyDetails?index='+journeyIdx).then(
             res => res.json()
         ).then(
@@ -220,9 +225,8 @@ function QuestDisplay(){
             setJourneyData(data)
             }
         )
-       
-    }, [currentQuestIdx])
-    
+    }
+
     const refreshQuestData = () => {
         console.log("Refreshing Quest data "+currentQuestIdx)
         if(currentQuestIdx !== -1){
@@ -266,7 +270,7 @@ function QuestDisplay(){
                                 <Card.Title>{journeyData.journeyName}</Card.Title>
                                 {journeyData.journeyDetail}
                                 <hr/>
-                                <ProgressBar now={journeyData.progress} label={`${journeyData.progress}%`}/>
+                                <ProgressBar now={journeyData.progress} label={`${journeyData.progress}`}/>
                             </Card.Body>
                         </Card>
                     </Row>                   
@@ -298,6 +302,7 @@ function QuestDisplay(){
                 <Col sm={9}>
                     <Row>
                         <Col sm={10}><h1 className='p-2'>{questData.name}</h1></Col>
+    
                         <Col>
                             <Dropdown className="float-right p-2">
                                 <Dropdown.Toggle variant="light"></Dropdown.Toggle>
@@ -308,6 +313,7 @@ function QuestDisplay(){
                             </Dropdown>
                         </Col>
                     </Row>
+                    <Badge>{questData.status}</Badge>
                         <Card>
                             <Card.Body>
                                 {questData.description}
@@ -323,9 +329,8 @@ function QuestDisplay(){
                     {questData.tasks && questData.tasks.length > 0 ? (
                         questData.tasks.map((task, i) => (
                             <ListGroup.Item key={i} onClick={()=>showTask(i)}>
-                                <Row>
-                                <Badge bg="light">{task.status}</Badge>
-                                <p>{task.name}</p>
+                                <Row className='p-1' style={{ textDecoration: task.status === 'Complete' ? 'line-through' : 'none' }}>
+                                {task.name}
                                 </Row>
                             </ListGroup.Item>
                         ))

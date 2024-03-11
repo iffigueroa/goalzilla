@@ -70,8 +70,18 @@ class Quest():
             print(f"{taskIdx} {len(self.tasks)}\n\n")
             return {'error': "Index out of range"}
         self.tasks[taskIdx].complete()
+        self.update_status()
+    
+    def update_status(self):
+        # Check if Quests are complete: 
+        num_complete = len([t for t in self.tasks if t.status == TaskStatus.COMPLETE])
+        print(f"{num_complete} {len(self.tasks)}")
+        if num_complete >= len(self.tasks):
+            self.status = QuestStatus.COMPLETE
+        else: 
+            self.status = QuestStatus.IN_PROGRESS 
+        print(f"Quest Status == {self.status}\n\n")
         return {"success": "task completed."}
-
 class JourneyStatus(Enum): 
     ACTIVE = 'Active'
     INACTIVE = 'Inactive'
@@ -84,7 +94,7 @@ class Journey():
             Quest("This is a test quest name that's kinda long", "hello"),
         ] 
         self.status: JourneyStatus = JourneyStatus.INACTIVE
-        self.progress: int = 50
+        self.progress: int = 0
     
     def set_journey_status(self, active: bool):
         self.status =  JourneyStatus.ACTIVE if active else JourneyStatus.INACTIVE
@@ -98,8 +108,11 @@ class Journey():
     def remove_quest(self, questIdx):
         self.quests.pop(questIdx)
 
-    def get_progress(self): 
-        return 0
+    def get_progress(self):
+        # count num complete tasks
+        all_tasks = sum( len(q.tasks) for q in self.quests)
+        completed_tasks = sum( sum(1 for task in quest.tasks if task.status == TaskStatus.COMPLETE) for quest in self.quests)
+        return int((completed_tasks/all_tasks)*100) if all_tasks > 0 else 0
 
     def get_journey_details(self):
         return {
@@ -107,7 +120,7 @@ class Journey():
             'journeyDetail': self.description,
             'questsComplete': self.get_competed_quests(),
             'totalQuests': len(self.quests),
-            'progress': self.progress,
+            'progress': self.get_progress(),
             'questList': [q.name for q in self.quests]
         }
     
@@ -177,11 +190,13 @@ class GoalzillaData():
         journey = self.goals[journeyIdx]
         quest: Quest = journey.quests[questIdx]
         quest.tasks.pop(taskIdx)
+        quest.update_status()
 
     def add_task(self, journeyIdx, questIdx, name):
         journey = self.goals[journeyIdx]
         quest: Quest = journey.quests[questIdx]
         quest.tasks.append(Task(name))
+        quest.update_status()
 
     def complete_task(self, journeyIdx, questIdx, taskIdx):
         journey = self.goals[journeyIdx]
