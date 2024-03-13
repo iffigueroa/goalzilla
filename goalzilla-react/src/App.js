@@ -6,7 +6,7 @@ import Journeys from './Journeys';
 
 function NavHeader() {
   return (
-    <Navbar bg='primary' variant='light'>
+    <Navbar variant='light'>
       <Navbar.Brand href="/">Goalzilla</Navbar.Brand>
     </Navbar>
   );

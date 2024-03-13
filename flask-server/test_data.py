@@ -156,7 +156,7 @@ class GoalzillaData():
         self.goals.append(Journey(name=journey_name, description=description))
 
     def get_journey_details(self, index):
-        if index < 0:
+        if index < 0 or index >= len(self.goals):
             return None
         return self.goals[index].get_journey_details()
     

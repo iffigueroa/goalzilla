@@ -1,13 +1,19 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import { Row, Col, ListGroup, Alert, Container, Card, Button, Form, Dropdown, ProgressBar} from 'react-bootstrap';
 
 import { useNavigate } from 'react-router-dom'
 
 import { QuestForm } from './Quest'
+import { DeletionConfirmation } from './DeletionConfirmation';
+
+
+const DataContext = React.createContext();
 
 
 function QuestDisplay({handleQuestAdded, journeyIdx}){
   const [showQuestForm, setShowQuestForm] = useState(false)
+  const [deletionModalShow, setDeletionModalShow] = useState(false);
+  const [questToRemove, setQuestToRemove] = useState(-1);
   const [questData, setQuestData] = useState([{}])
   const navigate = useNavigate()
   useEffect(() => {
@@ -16,23 +22,27 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
     ).then(
       data => {
         setQuestData(data.quests)        
-        console.log(questData)
+        console.log("Quest Data: "+questData)
       }
     )
   }, [journeyIdx])
 
-  const removeQuest = (i) => {
-    console.log("Remove Quest"+i)
+  const showDeletionConfirmation = (i) => {
+    setQuestToRemove(i)
+    setDeletionModalShow(true)
+  }
+  const removeQuest = () => {
+    console.log("Remove Quest"+questToRemove)
     fetch('/remove_quest', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": i}),
+      body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": questToRemove}),
     })
       .then((res) => res.text())
       .then((message) => {
-        console.log(message);
+        console.log("removeQuest: "+message);
         fetch('/quest_preview?journeyIdx='+journeyIdx).then(
           res => res.json()
         ).then(
@@ -53,7 +63,7 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
     })
       .then((res) => res.text())
       .then((message) => {
-        console.log(message);
+        console.log("add_quest: "+message);
         fetch('/quest_preview?journeyIdx='+journeyIdx).then(
           res => res.json()
         ).then(
@@ -101,7 +111,7 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
                 <Col sm={4} key={i} className="py-2">
                   <Card className="h-100" >
                     <Card.Body>
-                      <Button size="sm" className="float-right" variant='light' onClick={()=>removeQuest(i)}>X</Button>
+                      <Button size="sm" className="float-right" variant='light' onClick={()=>showDeletionConfirmation(i)}>X</Button>
                       <Card.Title>{q.name}</Card.Title> 
                       <Card.Text>{q.description}</Card.Text>                      
                     </Card.Body>
@@ -111,27 +121,38 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
               ))
         )}
       </Row>
+      <DeletionConfirmation itemType="quest" show={deletionModalShow}  onHide={() => setDeletionModalShow(false)} remove={removeQuest}/>
     </Container>
   )
 }
 
 function JourneyDisplay({journeyIdx, removeJourney}){
   const [data, setData] = useState([{}])
-  const [questsAdded, setQuestsAdded] = useState(0)
+  const { fetchJourneyData, handleFetchComplete } = useContext(DataContext);
 
-  const handleQuestAdded = () => {
-    setQuestsAdded(questsAdded+1)
+  const updateJourneyDetails = () =>{
+    console.log("JOURNEY IDX "+journeyIdx)
+    if (journeyIdx != -1){
+      fetch('/journeyDetails?index='+journeyIdx).then(
+        res => res.json()
+      ).then(
+        data => {
+          setData(data)
+          console.log("Journey Details: "+data)
+        }
+      ).catch(error => {
+        console.error('Error fetching journey details:', error);
+      });
+    }
   }
+
   useEffect(() => {
-    fetch('/journeyDetails?index='+journeyIdx).then(
-      res => res.json()
-    ).then(
-      data => {
-        setData(data)
-        console.log(data)
-      }
-    )
-  }, [journeyIdx, questsAdded])
+    console.log("TRIGGERING")
+    updateJourneyDetails()
+    if (fetchJourneyData){
+      handleFetchComplete()
+    }
+  }, [fetchJourneyData])
 
   return (
     <Container fluid="sm">
@@ -142,7 +163,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
             <Dropdown.Toggle variant="light"></Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item disabled>Edit Details</Dropdown.Item>
-              <Dropdown.Item onClick={() => removeJourney(journeyIdx)}>Remove</Dropdown.Item>
+              <Dropdown.Item onClick={removeJourney}>Remove</Dropdown.Item>
               <Dropdown.Item disabled>Set Active</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
@@ -172,7 +193,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
       </Row>
       <Row><Col><hr/></Col></Row>
       <Row>
-        <QuestDisplay handleQuestAdded={handleQuestAdded} journeyIdx={journeyIdx}/>
+        <QuestDisplay handleQuestAdded={updateJourneyDetails} journeyIdx={journeyIdx}/>
       </Row>
     </Container>
   )
@@ -181,7 +202,6 @@ function JourneyDisplay({journeyIdx, removeJourney}){
 
 
 function NewGoalForm({addNewGoal}){
-  // For editing 
   const [goalName, setGoalName] = useState('')
   const [description, setDescription] = useState('')
   const handleSubmit = (e) => {
@@ -215,14 +235,19 @@ function Journeys(){
   const [showNewGoalForm, setShowNewGoalForm] = useState(false)
   const [showGoalTrack, setShowGoalTrack] = useState(false)
   const [goalTrackId, setGoalTrackId] = useState(null)
+  const [deletionModalShow, setDeletionModalShow] = useState(false);
+  const [fetchJourneyData, setFetchJourneyData] = useState(false);
   
+  const showDeletionConfirmation = (i) => {
+    setDeletionModalShow(true)
+  }
+
   useEffect(() => {
     fetch('/goals').then(
       res => res.json()
     ).then(
       data => {
         setData(data)
-        console.log(data)
       }
     )
   }, [])
@@ -233,32 +258,41 @@ function Journeys(){
   };
   const displayGoalTrack = (index) => {
     setGoalTrackId(index)
+    setFetchJourneyData(true);  
     setShowGoalTrack(true);
     setShowNewGoalForm(false);
   };
 
-  const removeJourney = (index) => {
+  const removeJourney = () => {
     fetch('/remove_journey', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ "index": index}),
+      body: JSON.stringify({ "index": goalTrackId}),
     }).then((res) => res.text())
     .then((message) => {
-      console.log(message);
-      // Refresh the list of members after adding a new member
+      console.log("Remove Journey: "+message);
       fetch('/goals')
         .then((res) => res.json())
         .then((data) => {
           setData(data);
         });
     });
-    setGoalTrackId(goalTrackId < 0 ? 0 : goalTrackId - 1);
+    //Set activeId & force update journey display
+    const nextId = goalTrackId - 1
+    setGoalTrackId(nextId  < 0 ? 0 : nextId)
+    if (data.goals?.length !== 0){
+      console.log("FORCE FETCH DATA")
+      setFetchJourneyData(true);  
+    }
+    
   }
+  const handleFetchComplete = () => {
+    setFetchJourneyData(false);
+  };
 
   const addNewGoal = (goalName, description) => {
-    // Add new member to the list
     fetch('/add_goal', {
       method: 'POST',
       headers: {
@@ -268,8 +302,8 @@ function Journeys(){
     })
       .then((res) => res.text())
       .then((message) => {
-        console.log(message);
-        // Refresh the list of members after adding a new member
+        console.log("add goal: "+message);
+
         fetch('/goals')
           .then((res) => res.json())
           .then((data) => {
@@ -278,9 +312,9 @@ function Journeys(){
       });
       toggleGoalForm()
   };
-  console.log(data.goals?.length)
+  console.log("Goals len "+data.goals?.length)
   return (
-    <Container>
+    <Container className='mt-3'>
         <Row>
             <Col sm={3}>
             <Row>
@@ -301,9 +335,13 @@ function Journeys(){
 
             <Col>
             {showNewGoalForm && <NewGoalForm addNewGoal={addNewGoal}/>}
-            {data.goals?.length > 0 && showGoalTrack && <JourneyDisplay journeyIdx={goalTrackId} removeJourney={removeJourney} />}
+            <DataContext.Provider value={{fetchJourneyData, handleFetchComplete}}>
+              {data.goals?.length > 0 && showGoalTrack && <JourneyDisplay journeyIdx={goalTrackId} removeJourney={showDeletionConfirmation}/>}
+            </DataContext.Provider>
             </Col>
         </Row>
+        <DeletionConfirmation itemType="journey" show={deletionModalShow}  onHide={() => setDeletionModalShow(false)} remove={removeJourney}/>
+
       </Container>   
     )
 }

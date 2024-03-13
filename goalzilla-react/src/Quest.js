@@ -1,7 +1,9 @@
 import React, {useState, useEffect} from 'react'
 import { Alert, Badge,Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form, Modal} from 'react-bootstrap';
-
+import { DeletionConfirmation } from './DeletionConfirmation';
 import { useLocation, useNavigate } from 'react-router-dom'
+
+
 
 function TaskForm({addTask}){
     const [taskName, setTaskName] = useState('')
@@ -33,6 +35,8 @@ function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
     const [curentTaskIdx, setCurrentTaskIdx] = useState(taskIdx)
     const [currentQuestIdx, setCurrentQuestIdx] = useState(questIdx)
     const [taskDetails, setTaskDetails] = useState({})
+    const [deletionModalShow, setDeletionModalShow] = useState(false);
+
     useEffect(() => {
         const params = { journeyIdx, questIdx, taskIdx };
         const queryString = Object.keys(params)
@@ -64,30 +68,36 @@ function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
                 console.log(message)
             })
         onHide()
-        //Update rendering? 
+    }
+    const confirmDeletion = () => {
+        setDeletionModalShow(true)
     }
 
     return(
-        <Modal show={show}
-            size="lg"
-            aria-labelledby="contained-modal-title-vcenter"
-            centered
-        >
-            <Modal.Header>
-            <Modal.Title id="contained-modal-title-vcenter">
-                {taskDetails.name}
-            </Modal.Title>
-            <Button onClick={onHide} className='float-right' variant='light'>X</Button>
-            </Modal.Header>
-            <Modal.Body>
-            
-            </Modal.Body>
-            <Modal.Footer>
-                <Col><Button  className='text-center w-100' onClick={() => removeTask(curentTaskIdx)} variant='light'>Delete</Button></Col>
-                <Col><Button  className='text-center w-100' onClick={markComplete} variant='light'>Mark Complete</Button></Col>
-                <Col><Button  className='text-center w-100' onClick={onHide} variant='light'>Close</Button></Col>
-            </Modal.Footer>
-        </Modal>
+        <Container>
+            <DeletionConfirmation itemType="task" show={deletionModalShow}  onHide={() => setDeletionModalShow(false)} remove={() => removeTask(curentTaskIdx)}/>
+            <Modal show={show}
+                size="lg"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+                <Modal.Header>
+                <Modal.Title id="contained-modal-title-vcenter">
+                    {taskDetails.name}
+                </Modal.Title>
+                <Button onClick={onHide} className='float-right' variant='light'>X</Button>
+                </Modal.Header>
+                <Modal.Body>
+                
+                </Modal.Body>
+                <Modal.Footer>
+                    <Col><Button  className='text-center w-100' onClick={confirmDeletion} variant='light'>Delete</Button></Col>
+                    <Col><Button  className='text-center w-100' onClick={markComplete} variant='light'>Mark Complete</Button></Col>
+                    <Col><Button  className='text-center w-100' onClick={onHide} variant='light'>Close</Button></Col>
+                </Modal.Footer>
+            </Modal>
+        </Container>
+        
     )
 }
 
@@ -129,12 +139,13 @@ function QuestDisplay(){
     const [showQuestForm, setShowQuestForm] = useState(false)
     const [showTaskForm, setShowTaskForm] = useState(false)
     const [modalShow, setModalShow] = useState(false);
+    const [deletionModalShow, setDeletionModalShow] = useState(false);
     const [currentTaskIdx, setCurrentTaskIdx] = useState(-1)
     const [currentQuestIdx, setCurrentQuestIdx] = useState(questIdx)
     const [journeyData, setJourneyData] = useState([{}])
     const [questData, setQuestData] = useState([{}])
 
-
+    
     const toggleQuestForm = () => {
         setShowQuestForm((prev) => !prev);
     };
@@ -259,6 +270,9 @@ function QuestDisplay(){
         setCurrentTaskIdx(i)
         setModalShow(true)
     }
+    const showDeletionConfirmation = () => {
+        setDeletionModalShow(true)
+    }
 
     return (   
         <Container>
@@ -270,7 +284,7 @@ function QuestDisplay(){
                                 <Card.Title>{journeyData.journeyName}</Card.Title>
                                 {journeyData.journeyDetail}
                                 <hr/>
-                                <ProgressBar now={journeyData.progress} label={`${journeyData.progress}`}/>
+                                <ProgressBar now={journeyData.progress} label={`${journeyData.progress}%`}/>
                             </Card.Body>
                         </Card>
                     </Row>                   
@@ -308,7 +322,7 @@ function QuestDisplay(){
                                 <Dropdown.Toggle variant="light"></Dropdown.Toggle>
                                 <Dropdown.Menu>
                                 <Dropdown.Item disabled onClick={() => console.log("Edit Details")}>Edit Details</Dropdown.Item>
-                                <Dropdown.Item onClick={removeQuest}>Remove</Dropdown.Item>
+                                <Dropdown.Item onClick={showDeletionConfirmation}>Remove</Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
                         </Col>
@@ -342,6 +356,8 @@ function QuestDisplay(){
                     </ListGroup>
                     <Row></Row>
                     <TaskDialog show={modalShow} onHide={() => setModalShow(false)} removeTask={removeTask} journeyIdx={journeyIdx} questIdx={currentQuestIdx} taskIdx={currentTaskIdx}/>
+                    <DeletionConfirmation itemType="quest" show={deletionModalShow}  onHide={() => setDeletionModalShow(false)} remove={removeQuest}/>
+
                 </Col>
             </Row>
 
