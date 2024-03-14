@@ -5,26 +5,19 @@ import { useNavigate } from 'react-router-dom'
 
 import { QuestForm } from './Quest'
 import { DeletionConfirmation } from './DeletionConfirmation';
-
+import {postRemoveJourney, postAddJourney, getJourneyDetails,getJourneys, postRemoveQuest, postAddQuest, getQuestPreview} from './goalzillaRequests'
 
 const DataContext = React.createContext();
 
 
-function QuestDisplay({handleQuestAdded, journeyIdx}){
+function QuestDisplay({journeyIdx}){
   const [showQuestForm, setShowQuestForm] = useState(false)
   const [deletionModalShow, setDeletionModalShow] = useState(false);
   const [questToRemove, setQuestToRemove] = useState(-1);
   const [questData, setQuestData] = useState([{}])
   const navigate = useNavigate()
   useEffect(() => {
-    fetch('/quest_preview?journeyIdx='+journeyIdx).then(
-      res => res.json()
-    ).then(
-      data => {
-        setQuestData(data.quests)        
-        console.log("Quest Data: "+questData)
-      }
-    )
+    getQuestPreview({journeyIdx, setData: setQuestData})
   }, [journeyIdx])
 
   const showDeletionConfirmation = (i) => {
@@ -32,49 +25,15 @@ function QuestDisplay({handleQuestAdded, journeyIdx}){
     setDeletionModalShow(true)
   }
   const removeQuest = () => {
-    console.log("Remove Quest"+questToRemove)
-    fetch('/remove_quest', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": questToRemove}),
-    })
-      .then((res) => res.text())
-      .then((message) => {
-        console.log("removeQuest: "+message);
-        fetch('/quest_preview?journeyIdx='+journeyIdx).then(
-          res => res.json()
-        ).then(
-            data => {
-              setQuestData(data.quests)        
-            }
-          )
-      });
+    postRemoveQuest({journeyIdx: journeyIdx, questIdx: questToRemove})
+    getQuestPreview({journeyIdx, setData: setQuestData})
   }
 
   const addQuest = (name, description) => {
-    fetch('/add_quest', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ "journeyIdx": journeyIdx, "name": name, "description":description}),
-    })
-      .then((res) => res.text())
-      .then((message) => {
-        console.log("add_quest: "+message);
-        fetch('/quest_preview?journeyIdx='+journeyIdx).then(
-          res => res.json()
-        ).then(
-            data => {
-              setQuestData(data.quests)  
-              
-            }
-          )
-      })
-      toggleQuestForm()
-      handleQuestAdded()
+    postAddQuest({journeyIdx,name,description})
+    toggleQuestForm()
+    getQuestPreview({journeyIdx, setData: setQuestData})
+
   };
     const toggleQuestForm = () => {
         setShowQuestForm((prev) => !prev);
@@ -130,24 +89,8 @@ function JourneyDisplay({journeyIdx, removeJourney}){
   const [data, setData] = useState([{}])
   const { fetchJourneyData, handleFetchComplete } = useContext(DataContext);
 
-  const updateJourneyDetails = () =>{
-    console.log("JOURNEY IDX "+journeyIdx)
-    if (journeyIdx != -1){
-      fetch('/journeyDetails?journeyIdx='+journeyIdx).then(
-        res => res.json()
-      ).then(
-        data => {
-          setData(data)
-          console.log("Journey Details: "+data)
-        }
-      ).catch(error => {
-        console.error('Error fetching journey details:', error);
-      });
-    }
-  }
-
   useEffect(() => {
-    updateJourneyDetails()
+    getJourneyDetails({journeyIdx, setData})
     if (fetchJourneyData){
       handleFetchComplete()
     }
@@ -192,7 +135,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
       </Row>
       <Row><Col><hr/></Col></Row>
       <Row>
-        <QuestDisplay handleQuestAdded={updateJourneyDetails} journeyIdx={journeyIdx}/>
+        <QuestDisplay journeyIdx={journeyIdx}/>
       </Row>
     </Container>
   )
@@ -242,13 +185,7 @@ function Journeys(){
   }
 
   useEffect(() => {
-    fetch('/goals').then(
-      res => res.json()
-    ).then(
-      data => {
-        setData(data)
-      }
-    )
+    getJourneys({setData})
   }, [])
 
   const toggleGoalForm = () => {
@@ -263,21 +200,8 @@ function Journeys(){
   };
 
   const removeJourney = () => {
-    fetch('/remove_journey', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ "index": goalTrackId}),
-    }).then((res) => res.text())
-    .then((message) => {
-      console.log("Remove Journey: "+message);
-      fetch('/goals')
-        .then((res) => res.json())
-        .then((data) => {
-          setData(data);
-        });
-    });
+    postRemoveJourney({journeyIdx: goalTrackId})
+    getJourneys({setData})
     //Set activeId & force update journey display
     const nextId = goalTrackId - 1
     setGoalTrackId(nextId  < 0 ? 0 : nextId)
@@ -292,26 +216,11 @@ function Journeys(){
   };
 
   const addNewGoal = (goalName, description) => {
-    fetch('/add_goal', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ "name": goalName, "description":description}),
-    })
-      .then((res) => res.text())
-      .then((message) => {
-        console.log("add goal: "+message);
-
-        fetch('/goals')
-          .then((res) => res.json())
-          .then((data) => {
-            setData(data);
-          });
-      });
-      toggleGoalForm()
+    postAddJourney({name: goalName, description: description})
+    toggleGoalForm()
+    getJourneys({setData})
   };
-  console.log("Goals len "+data.goals?.length)
+
   return (
     <Container className='mt-3'>
         <Row>

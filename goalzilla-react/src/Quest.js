@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react'
 import { Alert, Badge,Row, Col, ListGroup, Container, Card, Button, Dropdown, ProgressBar, Form, Modal} from 'react-bootstrap';
 import { DeletionConfirmation } from './DeletionConfirmation';
 import { useLocation, useNavigate } from 'react-router-dom'
-
+import {getJourneyDetails, getQuestDetails, postAddQuest, getTaskDetails, postRemoveQuest, postRemoveTask, postTaskCompletion, postAddTask} from './goalzillaRequests'
 
 
 function TaskForm({addTask}){
@@ -38,35 +38,13 @@ function TaskDialog({show, onHide, removeTask, journeyIdx, questIdx, taskIdx}){
     const [deletionModalShow, setDeletionModalShow] = useState(false);
 
     useEffect(() => {
-        const params = { journeyIdx, questIdx, taskIdx };
-        const queryString = Object.keys(params)
-            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-            .join('&');
-        const url = `/getTaskDetails?${queryString}`;
-
-        fetch(url).then(
-            res => res.json()
-        ).then(
-            data => {
-                setTaskDetails(data)
-            }
-        )
+        getTaskDetails({ journeyIdx, questIdx, taskIdx, setData: setTaskDetails})
         setCurrentTaskIdx(taskIdx)
         setCurrentQuestIdx(questIdx)
     }, [taskIdx, questIdx])
 
     const markComplete = () => {
-        fetch('/add_task_completion', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx":currentQuestIdx, "taskIdx": curentTaskIdx}),
-          })
-            .then((res) => res.text())
-            .then((message) =>{
-                console.log(message)
-            })
+        postTaskCompletion({journeyIdx: journeyIdx, questIdx:currentQuestIdx , taskIdx:curentTaskIdx})
         onHide()
     }
     const confirmDeletion = () => {
@@ -154,100 +132,39 @@ function QuestDisplay(){
     };
 
     const addQuest = (name, description) => {
-    fetch('/add_quest', {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ "journeyIdx": journeyIdx, "name": name, "description":description}),
-    })
-        .then((res) => res.text())
-        .then((message) => {
-        console.log(message);
-        fetch('/journeyDetails?journeyIdx='+journeyIdx).then(
-            res => res.json()
-        ).then(
-            data => {
-            setJourneyData(data)
-            toggleQuestForm()
-            }
-        )})
+        postAddQuest({journeyIdx: journeyIdx, name: name, description: description})
+        getJourneyDetails({journeyIdx, setData:setJourneyData})
+        toggleQuestForm()
     };
 
     const addTask = (name) => {
-        fetch('/add_task', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": currentQuestIdx, 'taskName': name}),
-        })
-            .then((res) => res.text())
-            .then((message) => {
-                console.log(message);
-                refreshJourneyData()
-                refreshQuestData()
-                toggleTaskForm()
-            })
-        };
+        postAddTask({journeyIdx: journeyIdx, questIdx:currentQuestIdx,  taskName: name})
+        getJourneyDetails({journeyIdx, setData:setJourneyData})
+        refreshQuestData()
+        toggleTaskForm()        
+    }   
 
     const removeTask = (i) => {
         console.log("Remove Quest"+i)
-        fetch('/remove_task', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": currentQuestIdx, "taskIdx": i }),
-        })
-        .then((res) => res.text())
-        .then((message) => {
-            console.log(message);
-            refreshQuestData()
-            setModalShow(false)
-        });
+        postRemoveTask({journeyIdx: journeyIdx,questIdx:  currentQuestIdx, taskIdx: i})
+        refreshQuestData()
+        setModalShow(false)
     }
 
     const removeQuest = () => {
-        fetch('/remove_quest', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ "journeyIdx": journeyIdx, "questIdx": currentQuestIdx}),
-        })
-        .then((res) => res.text())
-        .then((message) => {
-            console.log(message);
-        });
+        postRemoveQuest({journeyIdx: journeyIdx, questIdx: currentQuestIdx})
         setCurrentQuestIdx(currentQuestIdx -1)
         console.log("updated currentQuestIdx "+currentQuestIdx)
     }
 
     useEffect(() => {
-        refreshJourneyData()
+        getJourneyDetails({journeyIdx, setData:setJourneyData})
     }, [currentQuestIdx, modalShow])
-
-    const refreshJourneyData = () => {
-        fetch('/journeyDetails?journeyIdx='+journeyIdx).then(
-            res => res.json()
-        ).then(
-            data => {
-            setJourneyData(data)
-            }
-        )
-    }
 
     const refreshQuestData = () => {
         console.log("Refreshing Quest data "+currentQuestIdx)
         if(currentQuestIdx !== -1){
-            fetch('/questDetails?journeyIdx='+journeyIdx+'&questIdx='+currentQuestIdx).then(
-                res => res.json()
-            ).then(
-                data => {
-                    setQuestData(data)
-                }
-            )
+            getQuestDetails({journeyIdx: journeyIdx, questIdx: currentQuestIdx, setData: setQuestData})
         }else{
             setCurrentQuestIdx(0);
         }
