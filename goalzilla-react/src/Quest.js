@@ -164,7 +164,7 @@ function QuestDisplay(){
         .then((res) => res.text())
         .then((message) => {
         console.log(message);
-        fetch('/journeyDetails?index='+journeyIdx).then(
+        fetch('/journeyDetails?journeyIdx='+journeyIdx).then(
             res => res.json()
         ).then(
             data => {
@@ -229,7 +229,7 @@ function QuestDisplay(){
     }, [currentQuestIdx, modalShow])
 
     const refreshJourneyData = () => {
-        fetch('/journeyDetails?index='+journeyIdx).then(
+        fetch('/journeyDetails?journeyIdx='+journeyIdx).then(
             res => res.json()
         ).then(
             data => {

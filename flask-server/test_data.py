@@ -152,13 +152,13 @@ class GoalzillaData():
     def get_goals_list(self):
         return [goal.name for goal in self.goals]
 
-    def add_journey(self, journey_name, description):
-        self.goals.append(Journey(name=journey_name, description=description))
+    def add_journey(self, name, description):
+        self.goals.append(Journey(name=name, description=description))
 
-    def get_journey_details(self, index):
-        if index < 0 or index >= len(self.goals):
+    def get_journey_details(self, journeyIdx):
+        if journeyIdx < 0 or journeyIdx >= len(self.goals):
             return None
-        return self.goals[index].get_journey_details()
+        return self.goals[journeyIdx].get_journey_details()
     
     def get_test_defaults(self):
         # return []
@@ -180,7 +180,7 @@ class GoalzillaData():
     def remove_quest(self, journeyIdx, questIdx):
         self.goals[journeyIdx].remove_quest(questIdx)
 
-    def get_quest_details(self, journeyIdx, questIdx):
+    def get_quest_details(self, journeyIdx: int, questIdx: int):
         return self.goals[journeyIdx].get_quest_details(questIdx)
     
     def get_task_details(self, journeyIdx, questIdx, taskIdx):
@@ -192,10 +192,10 @@ class GoalzillaData():
         quest.tasks.pop(taskIdx)
         quest.update_status()
 
-    def add_task(self, journeyIdx, questIdx, name):
+    def add_task(self, journeyIdx, questIdx, taskName):
         journey = self.goals[journeyIdx]
         quest: Quest = journey.quests[questIdx]
-        quest.tasks.append(Task(name))
+        quest.tasks.append(Task(taskName))
         quest.update_status()
 
     def complete_task(self, journeyIdx, questIdx, taskIdx):

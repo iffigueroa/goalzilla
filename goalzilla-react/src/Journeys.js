@@ -133,7 +133,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
   const updateJourneyDetails = () =>{
     console.log("JOURNEY IDX "+journeyIdx)
     if (journeyIdx != -1){
-      fetch('/journeyDetails?index='+journeyIdx).then(
+      fetch('/journeyDetails?journeyIdx='+journeyIdx).then(
         res => res.json()
       ).then(
         data => {
@@ -147,7 +147,6 @@ function JourneyDisplay({journeyIdx, removeJourney}){
   }
 
   useEffect(() => {
-    console.log("TRIGGERING")
     updateJourneyDetails()
     if (fetchJourneyData){
       handleFetchComplete()

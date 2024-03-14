@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from test_data import GoalzillaData
+from helper import extract_args
 
 app = Flask(__name__)
 
@@ -11,105 +12,69 @@ def get_goals():
 
 @app.route("/add_goal", methods=['POST'])
 def add_goal():
-    data = request.get_json()
-    name = data.get('name')
-    desc = data.get('description')
-    app_data.add_journey(journey_name=name, description=desc)
-    return jsonify({'message': f'Goal [{name}] added successfully'})
+    if (kwargs := extract_args(request, 'add_goal', isPost=True)):
+        app_data.add_journey(**kwargs)
+    return jsonify({'message': f'Goal added successfully'})
 
 @app.route("/remove_journey", methods=['POST'])
 def remove_journey():
-    data = request.get_json()
-    idx = data.get('index')
-    app.logger.info(f"removing {idx}")
-    app_data.remove_journey(index=idx)
-    app.logger.info("removed")
-    return jsonify({'message': f'Goal [{idx}] added successfully'})
+    if (kwargs := extract_args(request, 'remove_journey', isPost=True)):
+        app_data.remove_journey(**kwargs)
+    return jsonify({'message': f'Goal removed successfully'})
 
 @app.route("/quest_preview")
 def get_quest_preview():
-    args = request.args
-    journeyIdx = args.get('journeyIdx')
-    if journeyIdx: 
-        journeyIdx = int(journeyIdx)
-        return app_data.get_quest_preview(journeyIdx=journeyIdx)
+    if (kwargs := extract_args(request, 'quest_preview')):
+        return app_data.get_quest_preview(**kwargs)
 
 
 @app.route("/remove_quest", methods=['POST'])
 def remove_quest():
-    data = request.get_json()
-    journeyIdx = data.get('journeyIdx')
-    questIdx = data.get('questIdx')
-    app_data.remove_quest(journeyIdx=journeyIdx, questIdx=questIdx)
+    if (kwargs := extract_args(request, 'remove_quest', isPost=True)):
+        app_data.remove_quest(**kwargs)
     return jsonify({'message': 'Quest removed.'})
 
 
 @app.route("/add_quest", methods=['POST'])
 def add_quest():
-    data = request.get_json()
-    journeyIdx = data.get('journeyIdx')
-    name = data.get('name')
-    desc = data.get('description')
-    app_data.add_quest(journeyIdx=journeyIdx, name=name, description=desc)
+    if (kwargs := extract_args(request, 'add_quest', isPost=True)):
+        app_data.add_quest(**kwargs)
     return jsonify({'message': 'Quest added.'})
 
 @app.route("/journeyDetails")
 def getJourneyDetails():
-    journeyIdx = request.args.get('index')
-    if journeyIdx: 
-        journeyIdx = int(journeyIdx)
-        app.logger.info(f"Request for Journey Details for {journeyIdx}")
-        if (journeyDetails := app_data.get_journey_details(journeyIdx)):
-            return journeyDetails
-        return {'error': 'No journey with provided id.'}
-    else: 
-        return {'error': 'No journey with provided id.'}
+    if (kwargs := extract_args(request, 'journeyDetails')):
+        return app_data.get_journey_details(**kwargs)
+    return {'error': 'No journey with provided id.'}
 
 @app.route('/questDetails')
 def get_quest_details():
-    args = request.args
-    journeyIdx = args.get('journeyIdx')
-    questIdx = args.get('questIdx')
-    if journeyIdx and questIdx: 
-        return app_data.get_quest_details(journeyIdx=int(journeyIdx), questIdx=int(questIdx))
+    if (kwargs := extract_args(request, 'questDetails')):
+        return app_data.get_quest_details(**kwargs)
     return {'error': 'No journey with provided id.'}
 
 @app.route('/getTaskDetails')
 def get_task_details():
-    args = request.args
-    journeyIdx = args.get('journeyIdx')
-    questIdx = args.get('questIdx')
-    taskIdx = args.get('taskIdx')
-    if journeyIdx and questIdx and taskIdx:
-        return app_data.get_task_details(journeyIdx=int(journeyIdx), questIdx=int(questIdx), taskIdx=int(taskIdx))
+    if (kwargs := extract_args(request, 'getTaskDetails')):
+        return app_data.get_task_details(**kwargs)
     return {'error': 'No journey with provided id.'}
 
 @app.route("/remove_task", methods=['POST'])
 def remove_task():
-    data = request.get_json()
-    journeyIdx = data.get('journeyIdx')
-    questIdx = data.get('questIdx')
-    taskIdx = data.get('taskIdx')
-    app_data.remove_task(journeyIdx=int(journeyIdx), questIdx=int(questIdx), taskIdx=int(taskIdx))
+    if (kwargs := extract_args(request, 'remove_task', isPost=True)):
+        app_data.remove_task(**kwargs)
     return jsonify({'message': 'task removed.'})    
 
 @app.route("/add_task", methods=['POST'])
 def add_task():
-    data = request.get_json()
-    journeyIdx = data.get('journeyIdx')
-    questIdx = data.get('questIdx')
-    taskName = data.get('taskName')
-    app_data.add_task(journeyIdx=journeyIdx, questIdx=questIdx, name=taskName)
+    if (kwargs := extract_args(request, 'add_task', isPost=True)):
+        app_data.add_task(**kwargs)
     return jsonify({'message': 'Task added.'})
 
 @app.route("/add_task_completion", methods=['POST'])
 def add_task_completion():
-    data = request.get_json()
-    journeyIdx = data.get('journeyIdx')
-    questIdx = data.get('questIdx')
-    taskIdx = data.get('taskIdx')
-    app.logger.info(f"Adding completion for {journeyIdx} {questIdx} {taskIdx}")
-    app_data.complete_task(journeyIdx=journeyIdx, questIdx=questIdx, taskIdx=taskIdx)
+    if (kwargs := extract_args(request, 'add_task_completion', isPost=True)):
+        app_data.complete_task(**kwargs)
     return jsonify({'message': 'Task Completed.'})
     
 
