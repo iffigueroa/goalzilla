@@ -1,21 +1,7 @@
 
-REQUIRED_VALUES = {
-    'journeyDetails': [('journeyIdx', int)], 
-    'quest_preview': [('journeyIdx', int)], 
-    'questDetails': [('journeyIdx', int), ('questIdx', int)], 
-    'getTaskDetails': [('journeyIdx', int), ('questIdx', int), ('taskIdx', int)], 
-    'remove_quest': [('journeyIdx', int), ('questIdx', int)], 
-    'add_goal': [('name', str), ('description', str)], 
-    'remove_journey': [('index', int)], 
-    'add_quest': [('journeyIdx', int), ('name', str), ('description', str)], 
-    'remove_task': [('journeyIdx', int), ('questIdx', int), ('taskIdx', int)], 
-    'add_task': [('journeyIdx', int), ('questIdx', int), ('taskName', str)], 
-    'add_task_completion': [('journeyIdx', int), ('questIdx', int), ('taskIdx', int)], 
-}
-    
-
-def extract_args(request, route, isPost:bool=False):
-    if isPost:
+from request_config import REQUIRED_VALUES
+def extract_args(request, route: str, post:bool=False):
+    if post:
         params = request.get_json()
     else:
         params = request.args

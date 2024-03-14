@@ -12,13 +12,13 @@ def get_goals():
 
 @app.route("/add_goal", methods=['POST'])
 def add_goal():
-    if (kwargs := extract_args(request, 'add_goal', isPost=True)):
+    if (kwargs := extract_args(request, 'add_goal', post=True)):
         app_data.add_journey(**kwargs)
     return jsonify({'message': f'Goal added successfully'})
 
 @app.route("/remove_journey", methods=['POST'])
 def remove_journey():
-    if (kwargs := extract_args(request, 'remove_journey', isPost=True)):
+    if (kwargs := extract_args(request, 'remove_journey', post=True)):
         app_data.remove_journey(**kwargs)
     return jsonify({'message': f'Goal removed successfully'})
 
@@ -30,14 +30,14 @@ def get_quest_preview():
 
 @app.route("/remove_quest", methods=['POST'])
 def remove_quest():
-    if (kwargs := extract_args(request, 'remove_quest', isPost=True)):
+    if (kwargs := extract_args(request, 'remove_quest', post=True)):
         app_data.remove_quest(**kwargs)
     return jsonify({'message': 'Quest removed.'})
 
 
 @app.route("/add_quest", methods=['POST'])
 def add_quest():
-    if (kwargs := extract_args(request, 'add_quest', isPost=True)):
+    if (kwargs := extract_args(request, 'add_quest', post=True)):
         app_data.add_quest(**kwargs)
     return jsonify({'message': 'Quest added.'})
 
@@ -61,19 +61,19 @@ def get_task_details():
 
 @app.route("/remove_task", methods=['POST'])
 def remove_task():
-    if (kwargs := extract_args(request, 'remove_task', isPost=True)):
+    if (kwargs := extract_args(request, 'remove_task', post=True)):
         app_data.remove_task(**kwargs)
     return jsonify({'message': 'task removed.'})    
 
 @app.route("/add_task", methods=['POST'])
 def add_task():
-    if (kwargs := extract_args(request, 'add_task', isPost=True)):
+    if (kwargs := extract_args(request, 'add_task', post=True)):
         app_data.add_task(**kwargs)
     return jsonify({'message': 'Task added.'})
 
 @app.route("/add_task_completion", methods=['POST'])
 def add_task_completion():
-    if (kwargs := extract_args(request, 'add_task_completion', isPost=True)):
+    if (kwargs := extract_args(request, 'add_task_completion', post=True)):
         app_data.complete_task(**kwargs)
     return jsonify({'message': 'Task Completed.'})
     
