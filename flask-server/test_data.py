@@ -96,9 +96,6 @@ class Journey():
         self.status: JourneyStatus = JourneyStatus.INACTIVE
         self.progress: int = 0
     
-    def set_journey_status(self, active: bool):
-        self.status =  JourneyStatus.ACTIVE if active else JourneyStatus.INACTIVE
-    
     def update_details(self):
         pass
 
