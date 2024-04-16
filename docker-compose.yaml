@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: flask-server
+      dockerfile: Dockerfile
+    image: goalzilla-flask
+    expose:
+      - 5000
+    ports:
+      - "5000:5000"
+  client:
+    build:
+      context: goalzilla-react
+      dockerfile: Dockerfile
+    image: goalzilla-react
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
