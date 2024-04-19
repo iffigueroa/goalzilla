@@ -1,5 +1,4 @@
 from enum import Enum
-# from test_data import Quest
 
 class ActivityStatus(Enum):
     ACTIVE = 'Active'
