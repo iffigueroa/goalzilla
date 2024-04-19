@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from test_data import GoalzillaData
+from GoalzillaData import GoalzillaData
 from helper import extract_args
 
 app = Flask(__name__)

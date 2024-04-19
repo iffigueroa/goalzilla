@@ -99,7 +99,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
   return (
     <Container fluid="sm">
       <Row >
-        <Col sm={11}><h1>{data.journeyName}</h1></Col>
+        <Col sm={11}><h1>{data.name}</h1></Col>
         <Col>
           <Dropdown>
             <Dropdown.Toggle variant="light"></Dropdown.Toggle>
@@ -116,7 +116,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
         <Col sm ={8}>
           <Card className="h-100">
             <Card.Body>
-                {data.journeyDetail}
+                {data.description}
             </Card.Body>
           </Card>
         </Col>
@@ -124,7 +124,7 @@ function JourneyDisplay({journeyIdx, removeJourney}){
           <Card className="h-100">
             <Card.Body className="text-center">
               <Card.Title>Quests Completed</Card.Title>
-              <Card.Title>{data.questsComplete}/{data.totalQuests}</Card.Title>
+              <Card.Title>{data.subtasksComplete}/{data.totalSubtasks}</Card.Title>
             </Card.Body>
           </Card>
         </Col>
