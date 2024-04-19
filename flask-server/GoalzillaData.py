@@ -1,9 +1,8 @@
-# from test_data import Task
 from GoalzillaTypes import Task 
 
 class GoalzillaData():
     # Stores main application data & routes major tasks
-    # Eventually may be good to put this in an external source...
+    # Eventually may be good to put this in an external source/DB...
 
     def __init__(self, include_test_defaults: bool = False): 
         self.goals = [] if not include_test_defaults else self.get_test_defaults()
