@@ -1,5 +1,5 @@
 from enum import Enum
-from test_data import Quest
+# from test_data import Quest
 
 class ActivityStatus(Enum):
     ACTIVE = 'Active'
@@ -17,7 +17,7 @@ class TaskType(Enum):
 
 
 class Task():
-    def __init__(self, name: str, description: str, taskType: TaskType=TaskType.JOURNEY, timesToComplete: int = 1):
+    def __init__(self, name: str, description: str = "", taskType: TaskType=TaskType.JOURNEY, timesToComplete: int = 1):
         self.name = name
         self.description = description
         self.taskType = taskType
@@ -37,31 +37,44 @@ class Task():
             self.status = TaskStatus.COMPLETE
         else: 
             self.status = TaskStatus.IN_PROGRESS
+        
+        self.update_status()
     
-    def add_subtask(self, name, description):
-        self.subtasks.append(Quest(name, description))
+    def add_subtask(self, name:str, description:str = ""):
+        subtaskType = TaskType.QUEST if self.taskType == TaskType.JOURNEY else TaskType.TASK
+        self.subtasks.append(Task(name, description, taskType=subtaskType))
+        self.update_status()
     
-    def remove_subtask(self, questIdx): 
-        self.subtasks.pop(questIdx)
+    def remove_subtask(self, id): 
+        self.subtasks.pop(id)
+        self.update_status()
 
     def update_details(self): 
         pass 
 
     def get_subtasks_names(self): 
-        # return list of subtasks by name
         return [subtask.name for subtask in self.subtasks]
 
     def get_subtask_preview(self):
-        return {'quests': [q.get_preview() for q in self.subtasks]}
+        return {'quests': [q.get_task_details_full() for q in self.subtasks]}
 
-    def get_task_details(self) -> dict:
+    def get_task_details_preview(self):
         return {
-            'journeyName': self.name,
-            'journeyDetail': self.description,
-            'questsComplete': self.get_competed_subtasks(),
-            'totalQuests': len(self.subtasks),
+            "name": self.name,
+            "status": self.status.value
+        }
+
+    def get_task_details_full(self) -> dict:
+        self.update_status()
+        return {
+            'name': self.name,
+            'description': self.description,
+            'subtasksComplete': self.get_competed_subtasks(),
+            'totalSubtasks': len(self.subtasks),
+            'status': self.status.value,
             'progress': self.get_progress(),
-            'questList': self.get_subtasks_names(),
+            'subtaskList': self.get_subtasks_names(),
+            'tasks': [s.get_task_details_preview() for s in self.subtasks]
         }
 
     def get_competed_subtasks(self): 
@@ -72,13 +85,22 @@ class Task():
         return complete
 
     def get_progress(self):
-        # count num complete tasks
-        all_tasks = sum( len(q.tasks) for q in self.subtasks)
-        completed_tasks = sum( sum(1 for task in quest.tasks if task.status == TaskStatus.COMPLETE) for quest in self.subtasks)
+        all_tasks = sum( len(q.subtasks) for q in self.subtasks)
+        completed_tasks = sum( sum(1 for task in quest.subtasks if task.status == TaskStatus.COMPLETE) for quest in self.subtasks)
         return int((completed_tasks/all_tasks)*100) if all_tasks > 0 else 0
     
     def get_subtask_by_id(self, id):
         if id < 0 or id >= len(self.subtasks):
             return None
         return self.subtasks[id]
+    
+    def update_status(self):
+        num_complete = len([t for t in self.subtasks if t.status == TaskStatus.COMPLETE])
+        if len(self.subtasks) == 0 and self.taskType != TaskType.TASK:
+            self.status = TaskStatus.NOT_STARTED
+        elif num_complete >= len(self.subtasks):
+            self.status = TaskStatus.COMPLETE
+        else: 
+            self.status = TaskStatus.IN_PROGRESS 
+        return {"success": "task completed."}
     

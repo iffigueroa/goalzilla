@@ -1,5 +1,5 @@
-from test_data import Task
-from GoalzillaTypes import Task as Journey
+# from test_data import Task
+from GoalzillaTypes import Task 
 
 class GoalzillaData():
     # Stores main application data & routes major tasks
@@ -18,14 +18,14 @@ class GoalzillaData():
     def get_journey_details(self, journeyIdx):
         if journeyIdx < 0 or journeyIdx >= len(self.goals):
             return None
-        return self.goals[journeyIdx].get_task_details()
+        return self.goals[journeyIdx].get_task_details_full()
     
     def get_test_defaults(self):
         # return []
         return [
-            Journey(name = 'Test1', description = 'Hello1'),
-            Journey(name = 'Test2', description = 'Hello2'),
-            Journey(name = 'Test3', description = 'Hello3'), 
+            Task(name = 'Test1', description = 'Hello1'),
+            Task(name = 'Test2', description = 'Hello2'),
+            Task(name = 'Test3', description = 'Hello3'), 
         ]
     
     def get_task(self, journeyIdx:str = None, questIdx:str = None, taskIdx:str = None):
@@ -56,24 +56,22 @@ class GoalzillaData():
     def remove_quest(self, journeyIdx, questIdx):
         self.goals[journeyIdx].remove_subtask(questIdx)
 
-    def get_quest_details(self, journeyIdx: int, questIdx: int):
+    def get_quest_details(self, journeyIdx, questIdx):
         quest = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx)
-        return quest.get_preview()
+        return quest.get_task_details_full()
     
     def get_task_details(self, journeyIdx, questIdx, taskIdx):
-        quest = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx)
-        return quest.get_task_details(taskIdx)
+        task = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx, taskIdx=taskIdx)
+        return task.get_task_details_preview()
     
     def remove_task(self, journeyIdx, questIdx, taskIdx): 
         quest = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx)
-        quest.tasks.pop(taskIdx)
-        quest.update_status()
+        quest.remove_subtask(taskIdx)
 
     def add_task(self, journeyIdx, questIdx, taskName):
         quest = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx)
-        quest.tasks.append(Task(taskName))
-        quest.update_status()
+        quest.add_subtask(name = taskName)
 
     def complete_task(self, journeyIdx, questIdx, taskIdx):
-        quest = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx)
-        quest.complete_task(taskIdx)
+        task = self.get_task(journeyIdx=journeyIdx, questIdx=questIdx, taskIdx=taskIdx)
+        task.complete()

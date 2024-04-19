@@ -168,8 +168,8 @@ function QuestDisplay(){
         }else{
             setCurrentQuestIdx(0);
         }
-        if (journeyData.questList){
-            console.log("Length "+ journeyData.questList.length)
+        if (journeyData.subtaskList){
+            console.log("Length "+ journeyData.subtaskList.length)
         }
     }
 
@@ -178,7 +178,7 @@ function QuestDisplay(){
     }, [currentQuestIdx, modalShow])
 
     useEffect(() => {
-        if ((journeyData.questList) && (journeyData.questList.length === 0)) {
+        if ((journeyData.subtaskList) && (journeyData.subtaskList.length === 0)) {
             navigate('/');
         }
     }, [journeyData])
@@ -198,8 +198,8 @@ function QuestDisplay(){
                     <Row className='p-2'>
                         <Card className="w-100">
                             <Card.Body>
-                                <Card.Title>{journeyData.journeyName}</Card.Title>
-                                {journeyData.journeyDetail}
+                                <Card.Title>{journeyData.name}</Card.Title>
+                                {journeyData.description}
                                 <hr/>
                                 <ProgressBar now={journeyData.progress} label={`${journeyData.progress}%`}/>
                             </Card.Body>
@@ -215,10 +215,10 @@ function QuestDisplay(){
                     <hr/>
                     <Row >
                         <ListGroup className="w-100">
-                            {(typeof journeyData.questList === "undefined") ? (
+                            {(typeof journeyData.subtaskList === "undefined") ? (
                                 <p>Loading...</p>
                             ) : (
-                                journeyData.questList.map((name, i) => (
+                                journeyData.subtaskList.map((name, i) => (
                                     <ListGroup.Item 
                                         className={i === currentQuestIdx ? "list-group-item-action active" : "list-group-item-action"}
                                         key={i} 
