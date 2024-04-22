@@ -1,6 +1,11 @@
 
 
 ROUTE_INFO = {
+    'goals': {
+        'parameters': None,
+        'method': 'GET',
+        'handler': 'get_goals_list',
+    },
     'journeyDetails': {
         'parameters': [('journeyIdx', int)],
         'method': 'GET',

@@ -14,7 +14,7 @@ def extract_args(request, route: str, route_details: dict):
         params = request.args
     values_needed = route_details['parameters']
     if not values_needed: 
-        raise Exception(f"No required values found for {route}.")
+        return {}
     kwargs = {}
     for value, value_type in values_needed: 
         arg = params.get(value)
@@ -35,19 +35,19 @@ def handle_request(request, route):
     
     handler = getattr(app_data, route_details['handler'])
 
-    if (kwargs := extract_args(request, route, route_details)):
-        try: 
-            result = handler(**kwargs)
-            if result:
-                return result
-        except Exception as e:
-            return jsonify({"message": f"Failed to execute request {route} w/exception {e}"})
+    try: 
+        kwargs = extract_args(request, route, route_details)
+        result = handler(**kwargs)
+        if result:
+            return result
+    except Exception as e:
+        return jsonify({"message": f"Failed to execute request {route} w/exception {e}"})
     return jsonify({'message': f'Successful execution of {request}'})
 
 
 @app.route("/goals")
 def get_goals():
-    return {'goals': app_data.get_goals_list()}
+    return handle_request(request, 'goals')
 
 @app.route("/add_goal", methods=['POST'])
 def add_goal():

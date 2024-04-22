@@ -9,8 +9,8 @@ class GoalzillaData():
         self.userId = 0 # TODO: Update once login working
     
     def get_goals_list(self):
-        return [goal.name for goal in self.goals]
-
+        return {'goals': [goal.name for goal in self.goals]}
+    
     def add_journey(self, name, description):
         self.goals.append(Task(name=name, description=description))
 
