@@ -3,11 +3,10 @@ from request_config import ROUTE_INFO
 from GoalzillaData import GoalzillaData
 
 app = Flask(__name__)
-app_data = GoalzillaData(include_test_defaults=True)
+GOALZILLA_APP_HANDLER = GoalzillaData(include_test_defaults=True)
 
 """ Route Handling Helpers"""
-
-def extract_args(request, route: str, route_details: dict):
+def extract_args(request, route_details: dict):
     if route_details['method']=="POST":
         params = request.get_json()
     else:
@@ -28,15 +27,10 @@ def extract_args(request, route: str, route_details: dict):
     print(kwargs)
     return kwargs
 
-def handle_request(request, route):
-    route_details = ROUTE_INFO.get(route)
-    if not route_details:
-        raise Exception(f"NO ROUTE FOUND: {route}")
-    
-    handler = getattr(app_data, route_details['handler'])
-
+def handle_request(request, route, route_details, app_handler):
+    handler = getattr(app_handler, route_details['handler'])
     try: 
-        kwargs = extract_args(request, route, route_details)
+        kwargs = extract_args(request, route_details)
         result = handler(**kwargs)
         if result:
             return result
@@ -45,55 +39,23 @@ def handle_request(request, route):
     return jsonify({'message': f'Successful execution of {request}'})
 
 
-@app.route("/goals")
-def get_goals():
-    return handle_request(request, 'goals')
+def generate_route_methods(route_config, app_handler):
+    for route in route_config.keys():
+        route_details = route_config.get(route)
+        if not route_details:
+            raise Exception(f"No route found for: {route}")
 
-@app.route("/add_goal", methods=['POST'])
-def add_goal():
-    return handle_request(request, 'add_goal')
+        def create_route_method(route, route_details):
+            def func():
+                return handle_request(request, route, route_details, app_handler)
+            return func
 
-@app.route("/remove_journey", methods=['POST'])
-def remove_journey():
-    return handle_request(request, 'remove_journey')
-
-@app.route("/quest_preview")
-def get_quest_preview():
-    return handle_request(request, 'quest_preview')
+        view_func = create_route_method(route, route_details)
+        view_func.__name__ =  f"_function_{route}" 
+        app.add_url_rule(f"/{route}", view_func.__name__, view_func, methods=[route_details['method']])
 
 
-@app.route("/remove_quest", methods=['POST'])
-def remove_quest():
-    return handle_request(request, 'remove_quest')
-
-@app.route("/add_quest", methods=['POST'])
-def add_quest():
-    return handle_request(request, 'add_quest')
-
-@app.route("/journeyDetails")
-def getJourneyDetails():
-    return handle_request(request, 'journeyDetails')
-
-@app.route('/questDetails')
-def get_quest_details():
-    return handle_request(request, 'questDetails')
-
-@app.route('/getTaskDetails')
-def get_task_details():
-    return handle_request(request, 'getTaskDetails')
-
-@app.route("/remove_task", methods=['POST'])
-def remove_task():
-    return handle_request(request, 'remove_task')
-
-@app.route("/add_task", methods=['POST'])
-def add_task():
-    return handle_request(request, 'add_task')
-
-@app.route("/add_task_completion", methods=['POST'])
-def add_task_completion():
-    return handle_request(request, 'add_task_completion')
-
+generate_route_methods(route_config=ROUTE_INFO, app_handler=GOALZILLA_APP_HANDLER)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
